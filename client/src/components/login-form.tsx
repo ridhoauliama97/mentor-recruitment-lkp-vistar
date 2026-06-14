@@ -10,8 +10,9 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AlertCircle, LogIn } from "lucide-react";
+import { AlertCircle, BrandReactIcon } from "@/components/ui/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 interface LoginFormProps {
   appName: string;
@@ -41,6 +42,7 @@ export function LoginForm({
     setLoading(true);
     try {
       await onLogin(username, password);
+      toast.success("Login berhasil");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -54,7 +56,7 @@ export function LoginForm({
         <CardHeader className="text-center">
           <div className="mb-2 flex justify-center">
             <div className="flex size-12 items-center justify-center rounded-full bg-primary">
-              <LogIn className="size-6 text-primary-foreground" />
+              <BrandReactIcon className="size-6 text-primary-foreground" />
             </div>
           </div>
           <CardTitle className="text-xl">{appName}</CardTitle>

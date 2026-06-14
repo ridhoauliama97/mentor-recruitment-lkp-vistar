@@ -1,18 +1,41 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Trash2, FileSpreadsheet } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Plus, Pencil, Trash2, FileSpreadsheet } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table";
 import { useCandidateStore } from "@/stores/candidateStore";
 import type { Candidate } from "@/types";
 import type { ColumnDef } from "@tanstack/react-table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function Candidates() {
   const { candidates, loading, error, fetch, create, update, remove } = useCandidateStore();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Candidate | null>(null);
+  const [deleting, setDeleting] = useState<Candidate | null>(null);
   const [form, setForm] = useState({
     name: "", email: "", phone: "", education: "", institution: "", expertise: "", bio: "",
   });
@@ -43,12 +66,23 @@ export default function Candidates() {
     setShowForm(true);
   };
 
+  const openCreate = () => {
+    setEditing(null);
+    setForm({ name: "", email: "", phone: "", education: "", institution: "", expertise: "", bio: "" });
+    setShowForm(true);
+  };
+
   const columns: ColumnDef<Candidate>[] = useMemo(() => [
+    {
+      id: "no",
+      header: "No",
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.index + 1}</span>,
+    },
     {
       accessorKey: "name",
       header: "Nama",
       cell: ({ row }) => (
-        <Link to={`/candidates/${row.original.id}/scores`} className="text-sm font-medium text-[#2E86AB] hover:underline">
+        <Link to={`/candidates/${row.original.id}/scores`} className="text-sm font-medium text-secondary dark:text-white hover:underline">
           {row.original.name}
         </Link>
       ),
@@ -74,19 +108,36 @@ export default function Candidates() {
     },
     {
       id: "actions",
-      header: "Aksi",
+      header: "",
       cell: ({ row }) => (
-        <div className="flex justify-end gap-1">
-          <Link to={`/candidates/${row.original.id}/scores`}>
-            <Button variant="ghost" size="icon"><FileSpreadsheet className="h-4 w-4" /></Button>
-          </Link>
-          <Button variant="ghost" size="icon" onClick={() => handleEdit(row.original)}>
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={async () => { try { await remove(row.original.id); } catch { /* error set by store */ } }}>
-            <Trash2 className="h-4 w-4 text-destructive" />
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex justify-end gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to={`/candidates/${row.original.id}/scores`}>
+                  <Button variant="ghost" size="icon"><FileSpreadsheet className="h-4 w-4" /></Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Kriteria Kandidat</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={() => handleEdit(row.original)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={() => setDeleting(row.original)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Hapus</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       ),
     },
   ], []);
@@ -97,7 +148,7 @@ export default function Candidates() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-primary">Kandidat</h1>
-        <Button onClick={() => { setShowForm(true); setEditing(null); setForm({ name: "", email: "", phone: "", education: "", institution: "", expertise: "", bio: "" }); }}>
+        <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" /> Tambah Kandidat
         </Button>
       </div>
@@ -108,51 +159,105 @@ export default function Candidates() {
         </div>
       )}
 
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editing ? "Edit Kandidat" : "Tambah Kandidat Baru"}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama</label>
-                <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Telepon</label>
-                <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Pendidikan</label>
-                <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.education} onChange={(e) => setForm({ ...form, education: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Institusi</label>
-                <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Keahlian</label>
-                <input className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={form.expertise} onChange={(e) => setForm({ ...form, expertise: e.target.value })} />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Bio</label>
-                <textarea className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} />
-              </div>
-            </div>
-            <div className="flex gap-2 mt-4">
-              <Button onClick={handleSubmit}>{editing ? "Simpan" : "Tambah"}</Button>
-              <Button variant="outline" onClick={() => { setShowForm(false); setEditing(null); }}>Batal</Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <DataTable columns={columns} data={candidates} pageSize={10} />
+
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Kandidat" : "Tambah Kandidat Baru"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div>
+              <label className="block text-sm font-medium mb-1">Nama</label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Nama lengkap"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Email</label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="email@contoh.com"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Telepon</label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.phone}
+                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="08xxx"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Pendidikan</label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.education}
+                onChange={(e) => setForm({ ...form, education: e.target.value })}
+                placeholder="Contoh: S1 Informatika"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Institusi</label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.institution}
+                onChange={(e) => setForm({ ...form, institution: e.target.value })}
+                placeholder="Contoh: Universitas Indonesia"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Keahlian</label>
+              <input
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.expertise}
+                onChange={(e) => setForm({ ...form, expertise: e.target.value })}
+                placeholder="Contoh: Machine Learning"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Bio</label>
+              <textarea
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                rows={3}
+                value={form.bio}
+                onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                placeholder="Ceritakan tentang diri Anda"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowForm(false)}>Batal</Button>
+            <Button onClick={handleSubmit}>{editing ? "Simpan" : "Tambah"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deleting} onOpenChange={() => setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Kandidat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Kandidat <strong>{deleting?.name}</strong> akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (deleting) {
+                try { await remove(deleting.id); } catch { /* error set by store */ }
+              }
+              setDeleting(null);
+            }}>Hapus</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Loader2 } from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCandidateStore } from "@/stores/candidateStore";
 import { useCriteriaStore } from "@/stores/criteriaStore";
@@ -58,6 +59,8 @@ export default function Calculation() {
   const [matrixLabels, setMatrixLabels] = useState<string[][]>([]);
   const [scoresLoading, setScoresLoading] = useState(false);
   const [missingScores, setMissingScores] = useState(false);
+  const [candidateSearch, setCandidateSearch] = useState("");
+  const [criteriaSearch, setCriteriaSearch] = useState("");
 
   useEffect(() => {
     fetchCandidates();
@@ -69,6 +72,41 @@ export default function Calculation() {
 
   const toggleSelect = (arr: number[], val: number) =>
     arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val];
+
+  const filteredCandidates = activeCandidates.filter((c) =>
+    c.name.toLowerCase().includes(candidateSearch.toLowerCase()) ||
+    c.email.toLowerCase().includes(candidateSearch.toLowerCase()),
+  );
+  const filteredCriteria = activeCriteria.filter((c) =>
+    c.name.toLowerCase().includes(criteriaSearch.toLowerCase()) ||
+    c.code?.toLowerCase().includes(criteriaSearch.toLowerCase()),
+  );
+
+  const allCandidatesSelected = filteredCandidates.length > 0 &&
+    filteredCandidates.every((c) => selectedCandidates.includes(c.id));
+  const someCandidatesSelected = filteredCandidates.some((c) => selectedCandidates.includes(c.id));
+
+  const allCriteriaSelected = filteredCriteria.length > 0 &&
+    filteredCriteria.every((c) => selectedCriteria.includes(c.id));
+  const someCriteriaSelected = filteredCriteria.some((c) => selectedCriteria.includes(c.id));
+
+  const toggleAllCandidates = (checked: boolean) => {
+    const ids = filteredCandidates.map((c) => c.id);
+    if (checked) {
+      setSelectedCandidates((prev) => [...new Set([...prev, ...ids])]);
+    } else {
+      setSelectedCandidates((prev) => prev.filter((id) => !ids.includes(id)));
+    }
+  };
+
+  const toggleAllCriteria = (checked: boolean) => {
+    const ids = filteredCriteria.map((c) => c.id);
+    if (checked) {
+      setSelectedCriteria((prev) => [...new Set([...prev, ...ids])]);
+    } else {
+      setSelectedCriteria((prev) => prev.filter((id) => !ids.includes(id)));
+    }
+  };
 
   const goNext = async () => {
     if (step === 0) {
@@ -140,14 +178,14 @@ export default function Calculation() {
     <TooltipProvider>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-[#1E3A5F]">Perhitungan PSI</h1>
+          <h1 className="text-2xl font-bold text-primary">Perhitungan PSI</h1>
         </div>
 
         <div className="flex items-center gap-2">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm ${
-                i <= step ? "bg-[#1E3A5F] text-white" : "bg-muted text-muted-foreground"
+                i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
               }`}>
                 {i < step ? <Check className="h-3.5 w-3.5" /> : <span>{i + 1}</span>}
                 <span className="hidden sm:inline">{s}</span>
@@ -184,42 +222,104 @@ export default function Calculation() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Pilih Kandidat ({selectedCandidates.length || activeCandidates.length} dipilih)
+                  Pilih Kandidat ({selectedCandidates.length} dipilih)
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {activeCandidates.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setSelectedCandidates(toggleSelect(selectedCandidates, c.id))}
-                      className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                        selectedCandidates.includes(c.id) || (selectedCandidates.length === 0)
-                          ? "bg-[#1E3A5F] text-white border-[#1E3A5F]"
-                          : "bg-background border-border hover:border-[#1E3A5F]"
-                      }`}
-                    >
-                      {c.name}
-                    </button>
-                  ))}
+                <div className="rounded-lg border">
+                  <div className="flex items-center gap-2 border-b px-3 py-2">
+                    <input
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                      placeholder="Cari nama kandidat..."
+                      value={candidateSearch}
+                      onChange={(e) => setCandidateSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-muted">
+                        <tr>
+                          <th className="w-10 p-2 text-left">
+                            <Checkbox
+                              checked={allCandidatesSelected ? true : someCandidatesSelected ? "indeterminate" : false}
+                              onCheckedChange={(v) => toggleAllCandidates(!!v)}
+                            />
+                          </th>
+                          <th className="p-2 text-left font-medium">Nama</th>
+                          <th className="p-2 text-left font-medium">Email</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCandidates.length > 0 ? (
+                          filteredCandidates.map((c) => (
+                            <tr key={c.id} className="border-t hover:bg-muted/50">
+                              <td className="p-2">
+                                <Checkbox
+                                  checked={selectedCandidates.includes(c.id)}
+                                  onCheckedChange={() => setSelectedCandidates(toggleSelect(selectedCandidates, c.id))}
+                                />
+                              </td>
+                              <td className="p-2">{c.name}</td>
+                              <td className="p-2 text-muted-foreground">{c.email}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={3} className="p-4 text-center text-muted-foreground">Tidak ada data.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  Pilih Kriteria ({selectedCriteria.length || activeCriteria.length} dipilih)
+                  Pilih Kriteria ({selectedCriteria.length} dipilih)
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {activeCriteria.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => setSelectedCriteria(toggleSelect(selectedCriteria, c.id))}
-                      className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                        selectedCriteria.includes(c.id) || (selectedCriteria.length === 0)
-                          ? "bg-[#1E3A5F] text-white border-[#1E3A5F]"
-                          : "bg-background border-border hover:border-[#1E3A5F]"
-                      }`}
-                    >
-                      {c.name}
-                    </button>
-                  ))}
+                <div className="rounded-lg border">
+                  <div className="flex items-center gap-2 border-b px-3 py-2">
+                    <input
+                      className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                      placeholder="Cari nama kriteria..."
+                      value={criteriaSearch}
+                      onChange={(e) => setCriteriaSearch(e.target.value)}
+                    />
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-muted">
+                        <tr>
+                          <th className="w-10 p-2 text-left">
+                            <Checkbox
+                              checked={allCriteriaSelected ? true : someCriteriaSelected ? "indeterminate" : false}
+                              onCheckedChange={(v) => toggleAllCriteria(!!v)}
+                            />
+                          </th>
+                          <th className="p-2 text-left font-medium">Kode</th>
+                          <th className="p-2 text-left font-medium">Nama</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredCriteria.length > 0 ? (
+                          filteredCriteria.map((c) => (
+                            <tr key={c.id} className="border-t hover:bg-muted/50">
+                              <td className="p-2">
+                                <Checkbox
+                                  checked={selectedCriteria.includes(c.id)}
+                                  onCheckedChange={() => setSelectedCriteria(toggleSelect(selectedCriteria, c.id))}
+                                />
+                              </td>
+                              <td className="p-2">{c.code}</td>
+                              <td className="p-2">{c.name}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={3} className="p-4 text-center text-muted-foreground">Tidak ada data.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -393,7 +493,7 @@ export default function Calculation() {
                     <div
                       key={cand.id}
                       className={`flex items-center justify-between p-4 rounded-lg border ${
-                        rank === 1 ? "border-[#F0A500] border-2 bg-amber-50" : "bg-white"
+                        rank === 1 ? "border-accent border-2 bg-accent/10" : "bg-card"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -404,7 +504,7 @@ export default function Calculation() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-[#1E3A5F]">{detail.psiScores[i].toFixed(4)}</p>
+                        <p className="text-lg font-bold text-primary">{detail.psiScores[i].toFixed(4)}</p>
                         <p className="text-xs text-muted-foreground">PSI Score</p>
                       </div>
                     </div>
@@ -428,7 +528,7 @@ export default function Calculation() {
             <Button
               onClick={handleSave}
               disabled={calcLoading}
-              className="bg-[#F0A500] hover:bg-[#F0A500]/90 text-[#1A202C]"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
             >
               {calcLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

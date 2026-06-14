@@ -23,7 +23,9 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
   if (res.status === 401) {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("auth_user");
-    window.location.href = "/login";
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
     throw new Error("Sesi berakhir, silakan login kembali");
   }
 

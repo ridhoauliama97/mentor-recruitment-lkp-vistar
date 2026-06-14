@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Save, AlertTriangle, Download, Upload, Loader2, KeyRound } from "lucide-react";
+import { Save, AlertTriangle, Download, Upload, Loader2, KeyRound } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,7 +74,7 @@ export default function Settings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[#1E3A5F]">Pengaturan</h1>
+      <h1 className="text-2xl font-bold text-primary">Pengaturan</h1>
 
       <Card>
         <CardHeader>

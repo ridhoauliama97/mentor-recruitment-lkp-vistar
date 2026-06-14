@@ -2,6 +2,7 @@
   "name": "mentor-recruitment-psi",
   "private": true,
   "scripts": {
+    "dev": "concurrently \"pnpm --filter client dev\" \"pnpm --filter server start\"",
     "build": "pnpm --filter client build && pnpm --filter server build",
     "typecheck": "pnpm --filter client typecheck && pnpm --filter server typecheck"
   },

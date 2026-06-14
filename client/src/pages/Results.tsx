@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
 } from "recharts";
-import { Download, FileText, Trash2, ChevronDown, ChevronRight, Loader2 } from "lucide-react";
+import { Download, FileText, Trash2, ChevronDown, ChevronRight, Loader2 } from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,13 +58,13 @@ export default function Results() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Link to="/results"><Button variant="ghost"><ChevronRight className="h-5 w-5 rotate-180" /></Button></Link>
-          <h1 className="text-2xl font-bold text-[#1E3A5F]">{r.sessionName}</h1>
+          <h1 className="text-2xl font-bold text-primary">{r.sessionName}</h1>
           <Badge>{r.rankings.filter((rr) => rr.isRecommended).length} Direkomendasikan</Badge>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           {r.rankings.slice(0, 3).map((rank, i) => (
-            <Card key={rank.rank} className={i === 0 ? "border-[#F0A500] border-2" : ""}>
+            <Card key={rank.rank} className={i === 0 ? "border-accent border-2" : ""}>
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{["🥇", "🥈", "🥉"][i]}</span>
@@ -238,7 +238,7 @@ export default function Results() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-[#1E3A5F]">Hasil Perhitungan</h1>
+      <h1 className="text-2xl font-bold text-primary">Hasil Perhitungan</h1>
       {loading && <p className="text-muted-foreground">Memuat...</p>}
       {!loading && sessions.length === 0 && (
         <p className="text-muted-foreground">Belum ada sesi perhitungan. Buat sesi baru di halaman Perhitungan.</p>
@@ -249,7 +249,7 @@ export default function Results() {
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <Link to={`/results/${s.sessionId}`} className="font-semibold text-[#2E86AB] hover:underline">
+                  <Link to={`/results/${s.sessionId}`} className="font-semibold text-secondary hover:underline">
                     {s.sessionName}
                   </Link>
                   <p className="text-sm text-muted-foreground">{s.candidateCount ?? s.rankings?.length ?? 0} kandidat</p>

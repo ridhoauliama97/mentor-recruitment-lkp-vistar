@@ -1,8 +1,11 @@
 import {
   LogOutIcon,
   MoreVerticalIcon,
+  MoonIcon,
+  BrightnessDownIcon,
   Shield,
-} from "lucide-react";
+} from "@/components/ui/icons";
+import { useTheme } from "next-themes";
 
 import {
   Avatar,
@@ -35,6 +38,7 @@ export function NavUser({
   onLogout?: () => void
 }) {
   const { isMobile } = useSidebar()
+  const { theme, setTheme } = useTheme()
 
   return (
     <SidebarMenu>
@@ -80,6 +84,11 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+              {theme === "dark" ? <BrightnessDownIcon /> : <MoonIcon />}
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onLogout}>
               <LogOutIcon />

@@ -2,8 +2,8 @@ import {
   FolderIcon,
   MoreHorizontalIcon,
   ShareIcon,
-  type LucideIcon,
-} from "lucide-react"
+} from "@/components/ui/icons"
+import type { LucideIcon } from "@/components/ui/icons"
 
 import {
   DropdownMenu,

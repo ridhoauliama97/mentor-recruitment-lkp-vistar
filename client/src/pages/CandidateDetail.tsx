@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -95,7 +95,7 @@ export default function CandidateDetail() {
         <Link to="/candidates">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
         </Link>
-        <h1 className="text-2xl font-bold text-[#1E3A5F]">{candidate.name}</h1>
+        <h1 className="text-2xl font-bold text-primary">{candidate.name}</h1>
       </div>
 
       <Card>
@@ -130,8 +130,8 @@ export default function CandidateDetail() {
                             key={sc.id}
                             className={`flex items-center gap-3 px-3 py-2 rounded-md border cursor-pointer transition-colors ${
                               sel
-                                ? "bg-[#1E3A5F] text-white border-[#1E3A5F]"
-                                : "bg-white border-border hover:border-[#1E3A5F]"
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-card border-border hover:border-primary"
                             }`}
                           >
                             <input

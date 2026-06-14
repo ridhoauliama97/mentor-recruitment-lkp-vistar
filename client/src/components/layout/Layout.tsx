@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { Toaster } from "sonner";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
@@ -18,7 +17,6 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </SidebarInset>
-      <Toaster position="top-right" richColors closeButton />
     </SidebarProvider>
   );
 }

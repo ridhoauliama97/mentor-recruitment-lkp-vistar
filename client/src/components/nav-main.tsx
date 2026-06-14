@@ -2,6 +2,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
@@ -15,6 +16,7 @@ export function NavMain({
     icon?: React.ComponentType;
     isActive?: boolean;
     onClick?: () => void;
+    badgeCount?: number;
   }[];
 }) {
   return (
@@ -33,6 +35,9 @@ export function NavMain({
                   {Icon && <Icon />}
                   <span>{item.title}</span>
                 </SidebarMenuButton>
+                {item.badgeCount != null && item.badgeCount > 0 && (
+                  <SidebarMenuBadge>{item.badgeCount}</SidebarMenuBadge>
+                )}
               </SidebarMenuItem>
             );
           })}

@@ -23,7 +23,7 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   ChevronRight,
-} from "lucide-react"
+} from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
 import {
   Select,
@@ -61,7 +61,6 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
   const [expanded, setExpanded] = React.useState<ExpandedState>({})
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
@@ -70,37 +69,38 @@ export function DataTable<TData, TValue>({
 
   const hasExpanding = !!getRowCanExpand
 
+  const expandColumn: ColumnDef<TData, TValue> = {
+    id: "expand",
+    header: "",
+    cell: ({ row }: { row: Row<TData> }) => {
+      if (!row.getCanExpand()) return null
+      return (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 p-0"
+          onClick={(e) => {
+            e.stopPropagation()
+            row.toggleExpanded()
+          }}
+        >
+          {row.getIsExpanded() ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+      )
+    },
+    enableSorting: false,
+    enableHiding: false,
+  }
+
   const displayColumns = React.useMemo(() => {
-    if (!hasExpanding) return columns
-    return [
-      {
-        id: "expand",
-        header: "",
-        cell: ({ row }: { row: Row<TData> }) => {
-          if (!row.getCanExpand()) return null
-          return (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation()
-                row.toggleExpanded()
-              }}
-            >
-              {row.getIsExpanded() ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          )
-        },
-        enableSorting: false,
-        enableHiding: false,
-      } as ColumnDef<TData, TValue>,
-      ...columns,
-    ]
+    const result: ColumnDef<TData, TValue>[] = []
+    if (hasExpanding) result.push(expandColumn)
+    result.push(...columns)
+    return result
   }, [columns, hasExpanding])
 
   const table = useReactTable({
@@ -109,13 +109,10 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
       columnVisibility,
-      rowSelection,
       columnFilters,
       pagination,
       expanded,
     },
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -133,38 +130,6 @@ export function DataTable<TData, TValue>({
 
   const { pageIndex } = table.getState().pagination
   const pageCount = table.getPageCount()
-  const totalRows = table.getFilteredRowModel().rows.length
-  const { pageSize: currentPageSize } = table.getState().pagination
-  const from = totalRows === 0 ? 0 : pageIndex * currentPageSize + 1
-  const to = Math.min((pageIndex + 1) * currentPageSize, totalRows)
-
-  const getPageNumbers = () => {
-    const pages: (number | "ellipsis")[] = []
-    const maxVisible = 5
-
-    if (pageCount <= maxVisible) {
-      for (let i = 0; i < pageCount; i++) pages.push(i)
-    } else {
-      pages.push(0)
-      let start = Math.max(1, pageIndex - 1)
-      let end = Math.min(pageCount - 2, pageIndex + 1)
-
-      if (pageIndex <= 1) {
-        start = 1
-        end = Math.min(3, pageCount - 2)
-      } else if (pageIndex >= pageCount - 2) {
-        start = Math.max(pageCount - 4, 1)
-        end = pageCount - 2
-      }
-
-      if (start > 1) pages.push("ellipsis")
-      for (let i = start; i <= end; i++) pages.push(i)
-      if (end < pageCount - 2) pages.push("ellipsis")
-      pages.push(pageCount - 1)
-    }
-
-    return pages
-  }
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -190,7 +155,7 @@ export function DataTable<TData, TValue>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <React.Fragment key={row.id}>
-                  <TableRow data-state={row.getIsSelected() && "selected"}>
+                  <TableRow>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -223,90 +188,71 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex flex-col items-center justify-between gap-4 px-4 sm:flex-row">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Menampilkan {from}-{to} dari {totalRows} data</span>
+      <div className="flex items-center justify-end gap-8 px-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Rows per page</span>
+          <Select
+            value={String(table.getState().pagination.pageSize)}
+            onValueChange={(value) => {
+              table.setPageSize(Number(value))
+              table.setPageIndex(0)
+            }}
+          >
+            <SelectTrigger className="h-8 w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {pageSizeOptions.map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground whitespace-nowrap">Baris per halaman</span>
-            <Select
-              value={String(currentPageSize)}
-              onValueChange={(value) => {
-                table.setPageSize(Number(value))
-                table.setPageIndex(0)
-              }}
-            >
-              <SelectTrigger className="h-8 w-16">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {pageSizeOptions.map((size) => (
-                  <SelectItem key={size} value={String(size)}>
-                    {size}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Halaman pertama</span>
-              <ChevronsLeftIcon />
-            </Button>
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Halaman sebelumnya</span>
-              <ChevronLeftIcon />
-            </Button>
-
-            {getPageNumbers().map((page, idx) =>
-              page === "ellipsis" ? (
-                <span key={`ellipsis-${idx}`} className="px-1 text-sm text-muted-foreground">
-                  ...
-                </span>
-              ) : (
-                <Button
-                  key={page}
-                  variant={page === pageIndex ? "default" : "outline"}
-                  className="h-8 w-8 p-0 text-sm"
-                  onClick={() => table.setPageIndex(page)}
-                >
-                  {page + 1}
-                </Button>
-              )
-            )}
-
-            <Button
-              variant="outline"
-              className="h-8 w-8 p-0"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Halaman selanjutnya</span>
-              <ChevronRightIcon />
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(pageCount - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Halaman terakhir</span>
-              <ChevronsRightIcon />
-            </Button>
-          </div>
+        <div className="flex w-fit items-center justify-center text-sm font-medium">
+          Page {pageIndex + 1} of {pageCount}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            className="hidden h-8 w-8 p-0 lg:flex"
+            onClick={() => table.setPageIndex(0)}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <span className="sr-only">Halaman pertama</span>
+            <ChevronsLeftIcon />
+          </Button>
+          <Button
+            variant="outline"
+            className="size-8"
+            size="icon"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <span className="sr-only">Halaman sebelumnya</span>
+            <ChevronLeftIcon />
+          </Button>
+          <Button
+            variant="outline"
+            className="size-8"
+            size="icon"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            <span className="sr-only">Halaman selanjutnya</span>
+            <ChevronRightIcon />
+          </Button>
+          <Button
+            variant="outline"
+            className="hidden size-8 lg:flex"
+            size="icon"
+            onClick={() => table.setPageIndex(pageCount - 1)}
+            disabled={!table.getCanNextPage()}
+          >
+            <span className="sr-only">Halaman terakhir</span>
+            <ChevronsRightIcon />
+          </Button>
         </div>
       </div>
     </div>

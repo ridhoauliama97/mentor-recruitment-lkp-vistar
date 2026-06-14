@@ -5,10 +5,12 @@ import {
   Settings,
   SlidersHorizontal,
   Users,
-} from "lucide-react";
+} from "@/components/ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSettingsStore } from "@/stores/settingsStore";
 import { useAuthStore } from "@/stores/authStore";
+import { useCriteriaStore } from "@/stores/criteriaStore";
+import { useCandidateStore } from "@/stores/candidateStore";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -36,11 +38,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const { settings, fetch: fetchSettings } = useSettingsStore();
   const { user, logout } = useAuthStore();
+  const { criteria, fetch: fetchCriteria } = useCriteriaStore();
+  const { candidates, fetch: fetchCandidates } = useCandidateStore();
   const appName = settings.app_name ?? "Coach PSI";
 
   useEffect(() => {
     if (!settings.app_name) fetchSettings();
-  }, [settings.app_name, fetchSettings]);
+    fetchCriteria();
+    fetchCandidates();
+  }, [settings.app_name, fetchSettings, fetchCriteria, fetchCandidates]);
 
   const handleLogout = () => {
     logout();
@@ -72,6 +78,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             ...item,
             isActive: isActive(item.url),
             onClick: () => navigate(item.url),
+            badgeCount: item.url === "/criteria"
+              ? criteria.length
+              : item.url === "/candidates"
+                ? candidates.length
+                : undefined,
           }))}
         />
       </SidebarContent>

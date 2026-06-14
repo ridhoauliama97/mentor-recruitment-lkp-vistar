@@ -14,8 +14,8 @@ export default defineConfig({
     proxy: {
       "/api": "http://localhost:3001",
     },
-  },
-  optimizeDeps: {
-    include: ["@react-pdf/renderer"],
+    watch: {
+      ignored: ["**/server/**", "**/data/**", "**/dist/**"],
+    },
   },
 });
