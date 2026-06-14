@@ -1,0 +1,14 @@
+{
+  "name": "mentor-recruitment-psi",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter client build && pnpm --filter server build",
+    "typecheck": "pnpm --filter client typecheck && pnpm --filter server typecheck"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
