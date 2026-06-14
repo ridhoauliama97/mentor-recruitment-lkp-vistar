@@ -184,9 +184,8 @@ export default function Calculation() {
         <div className="flex items-center gap-2">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm ${
-                i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-              }`}>
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm ${i <= step ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                }`}>
                 {i < step ? <Check className="h-3.5 w-3.5" /> : <span>{i + 1}</span>}
                 <span className="hidden sm:inline">{s}</span>
               </div>
@@ -204,6 +203,7 @@ export default function Calculation() {
               <div>
                 <label className="block text-sm font-medium mb-1">Nama Sesi</label>
                 <input
+                  required
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={sessionName}
                   onChange={(e) => setSessionName(e.target.value)}
@@ -435,11 +435,11 @@ export default function Calculation() {
                           </th>
                           {isVector
                             ? critList.map((c) => (
-                                <th key={c.id} className="p-2 font-medium text-center">{c.name}</th>
-                              ))
+                              <th key={c.id} className="p-2 font-medium text-center">{c.name}</th>
+                            ))
                             : critList.map((c) => (
-                                <th key={c.id} className="p-2 font-medium text-center">{c.name}</th>
-                              ))}
+                              <th key={c.id} className="p-2 font-medium text-center">{c.name}</th>
+                            ))}
                         </tr>
                       </thead>
                       <tbody>
@@ -492,9 +492,8 @@ export default function Calculation() {
                   return (
                     <div
                       key={cand.id}
-                      className={`flex items-center justify-between p-4 rounded-lg border ${
-                        rank === 1 ? "border-accent border-2 bg-accent/10" : "bg-card"
-                      }`}
+                      className={`flex items-center justify-between p-4 rounded-lg border ${rank === 1 ? "border-accent border-2 bg-accent/10" : "bg-card"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">{medal}</span>

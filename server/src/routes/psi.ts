@@ -117,7 +117,7 @@ router.post("/calculate", async (req, res) => {
 router.get("/sessions", (_req, res) => {
   const sessions = exec(
     `SELECT ps.id as sessionId, ps.session_name as sessionName, ps.description, ps.status, ps.created_at as createdAt, ps.calculated_at as calculatedAt, (SELECT COUNT(*) FROM psi_results WHERE session_id = ps.id) as candidateCount
-     FROM psi_sessions ps ORDER BY ps.created_at DESC`,
+    FROM psi_sessions ps ORDER BY ps.created_at DESC`,
   );
   res.json(sessions);
 });
@@ -133,9 +133,9 @@ router.get("/sessions/latest", (_req, res) => {
   const session = sessions[0] as Record<string, unknown>;
   const results = exec(
     `SELECT pr.*, c.* FROM psi_results pr
-     JOIN candidates c ON pr.candidate_id = c.id
-     WHERE pr.session_id = ${session.id}
-     ORDER BY pr.rank`,
+    JOIN candidates c ON pr.candidate_id = c.id
+    WHERE pr.session_id = ${session.id}
+    ORDER BY pr.rank`,
   );
   const criteria = exec("SELECT * FROM criteria ORDER BY id");
   const details = exec(
@@ -182,9 +182,9 @@ router.get("/sessions/:id", (req, res) => {
 
   const results = exec(
     `SELECT pr.*, c.* FROM psi_results pr
-     JOIN candidates c ON pr.candidate_id = c.id
-     WHERE pr.session_id = ${session.id}
-     ORDER BY pr.rank`,
+    JOIN candidates c ON pr.candidate_id = c.id
+    WHERE pr.session_id = ${session.id}
+    ORDER BY pr.rank`,
   );
 
   const criteria = exec("SELECT * FROM criteria ORDER BY id");

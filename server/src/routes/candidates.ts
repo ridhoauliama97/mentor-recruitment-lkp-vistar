@@ -79,8 +79,8 @@ router.delete("/:id", (req, res) => {
 router.get("/:id/scores", (req, res) => {
   const scores = exec(
     `SELECT s.*, c.name as criteria_name, c.type as criteria_type
-     FROM scores s JOIN criteria c ON s.criteria_id = c.id
-     WHERE s.candidate_id = ${req.params.id}`,
+    FROM scores s JOIN criteria c ON s.criteria_id = c.id
+    WHERE s.candidate_id = ${req.params.id}`,
   );
   res.json(scores);
 });

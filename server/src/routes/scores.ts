@@ -6,9 +6,9 @@ const router = Router();
 router.get("/:candidateId/scores", (req, res) => {
   const scores = exec(
     `SELECT s.*, sc.name as sub_criteria_name, sc.weight as sub_criteria_weight
-     FROM scores s
-     LEFT JOIN sub_criteria sc ON s.sub_criteria_id = sc.id
-     WHERE s.candidate_id = ${req.params.candidateId}`,
+    FROM scores s
+    LEFT JOIN sub_criteria sc ON s.sub_criteria_id = sc.id
+    WHERE s.candidate_id = ${req.params.candidateId}`,
   );
   res.json(scores);
 });

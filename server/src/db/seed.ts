@@ -99,7 +99,7 @@ export function seed() {
 }
 
 export function seedSettings() {
-  run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('app_name', 'Penilaian Calon Coach AI Engineer')");
+  run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('app_name', 'SPK Rekrutmen Mentor AI Engineer')");
   run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('institution', 'LKP Academy Vistar')");
   saveDb();
 }

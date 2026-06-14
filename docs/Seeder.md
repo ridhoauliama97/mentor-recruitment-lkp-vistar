@@ -1,4 +1,4 @@
-# Seed Data — Penilaian Calon Coach AI Engineer
+# Seed Data — SPK Rekrutmen Mentor AI Engineer
 
 ## Cara Kerja
 
@@ -35,7 +35,7 @@ Seeder menggunakan `INSERT OR IGNORE`, jadi data admin tidak akan duplikat meski
 
 ## Data yang Di-seed
 
-### 5 Kriteria — Penilaian Calon Coach AI Engineer
+### 5 Kriteria — SPK Rekrutmen Mentor AI Engineer
 
 | Kode | Nama | Bobot Ref | Tipe | Status |
 |------|------|-----------|:----:|--------|
@@ -77,7 +77,7 @@ Nilai berupa angka **1–5** (integer) yang mereferensi `sub_criteria_id`.
 
 | Key | Value |
 |-----|-------|
-| app_name | Penilaian Calon Coach AI Engineer |
+| app_name | SPK Rekrutmen Mentor AI Engineer |
 | institution | LKP Academy Vistar |
 
 ## File Terkait

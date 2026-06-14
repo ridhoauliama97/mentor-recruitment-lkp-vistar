@@ -1,8 +1,8 @@
-# AGENTS.md — Penilaian Calon Coach AI Engineer (PSI)
+# AGENTS.md — SPK Rekrutmen Mentor AI Engineer (PSI)
 
 ## What this repo is
 
-A full-stack Coach AI Engineer assessment app using the PSI (Preference Selection Index) decision-making method. Domain: **LKP Academy Vistar — Penilaian Calon Coach AI Engineer**.
+A full-stack Coach AI Engineer assessment app using the PSI (Preference Selection Index) decision-making method. Domain: **LKP Academy Vistar — SPK Rekrutmen Mentor AI Engineer**.
 
 ## Architecture
 

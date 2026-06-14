@@ -85,7 +85,8 @@ export default function Results() {
 
         {radarData.length > 0 && (
           <Card>
-            <CardHeader><CardTitle>Radar Chart — 3 Teratas</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle>Radar Chart — 3 Teratas</CardTitle></CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={400}>
                 <RadarChart data={radarData}>
@@ -103,7 +104,9 @@ export default function Results() {
         )}
 
         <Card>
-          <CardHeader><CardTitle>PSI Score — Semua Kandidat</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>PSI Score — Semua Kandidat</CardTitle>
+          </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={barData} layout="vertical">
@@ -111,7 +114,7 @@ export default function Results() {
                 <XAxis type="number" domain={[0, 1]} tickFormatter={(v) => v.toFixed(2)} />
                 <YAxis type="category" dataKey="name" width={120} />
                 <Tooltip formatter={(v: number) => v.toFixed(4)} />
-                <Bar dataKey="score" fill="#2E86AB" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="score" fill="var(--secondary)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -249,7 +252,7 @@ export default function Results() {
             <CardContent className="p-4">
               <div className="flex justify-between items-start">
                 <div>
-                  <Link to={`/results/${s.sessionId}`} className="font-semibold text-secondary hover:underline">
+                  <Link to={`/results/${s.sessionId}`} className="font-semibold text-secondary hover:underline dark:text-white">
                     {s.sessionName}
                   </Link>
                   <p className="text-sm text-muted-foreground">{s.candidateCount ?? s.rankings?.length ?? 0} kandidat</p>

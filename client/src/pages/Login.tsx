@@ -13,8 +13,8 @@ export default function Login() {
     if (!settings.app_name) fetch();
   }, [settings.app_name, fetch]);
 
-  const appName = settings.app_name ?? "Penilaian Calon Coach AI Engineer";
-  const institution = settings.institution ?? "LKP Academy Vistar";
+  const appName = settings.app_name ?? "LKP Academy Vistar";
+  const institution = settings.institution ?? "SPK Rekrutmen Mentor AI Engineer";
 
   const handleLogin = async (username: string, password: string) => {
     await login(username, password);

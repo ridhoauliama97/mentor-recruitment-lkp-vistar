@@ -66,7 +66,7 @@ export function ChartAreaInteractive({
               />
               <Bar
                 dataKey="score"
-                fill="hsl(var(--chart-1))"
+                fill="var(--secondary)"
                 radius={[0, 4, 4, 0]}
               />
             </BarChart>

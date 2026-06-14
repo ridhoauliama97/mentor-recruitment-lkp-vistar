@@ -128,11 +128,10 @@ export default function CandidateDetail() {
                         return (
                           <label
                             key={sc.id}
-                            className={`flex items-center gap-3 px-3 py-2 rounded-md border cursor-pointer transition-colors ${
-                              sel
+                            className={`flex items-center gap-3 px-3 py-2 rounded-md border cursor-pointer transition-colors ${sel
                                 ? "bg-primary text-primary-foreground border-primary"
                                 : "bg-card border-border hover:border-primary"
-                            }`}
+                              }`}
                           >
                             <input
                               type="radio"
@@ -143,9 +142,8 @@ export default function CandidateDetail() {
                             />
                             <span className="flex-1 text-sm">{sc.name}</span>
                             <span className="text-xs text-muted-foreground mr-1">{scoreLabel[sc.weight]}</span>
-                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
-                              sel ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
-                            }`}>
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${sel ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+                              }`}>
                               {sc.weight}
                             </span>
                           </label>

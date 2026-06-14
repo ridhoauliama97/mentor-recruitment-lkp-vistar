@@ -6,6 +6,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Badge } from "./ui/badge";
 
 export function NavMain({
   items,
@@ -36,7 +37,11 @@ export function NavMain({
                   <span>{item.title}</span>
                 </SidebarMenuButton>
                 {item.badgeCount != null && item.badgeCount > 0 && (
-                  <SidebarMenuBadge>{item.badgeCount}</SidebarMenuBadge>
+                  <SidebarMenuBadge>
+                    <Badge>
+                      {item.badgeCount}
+                    </Badge>
+                  </SidebarMenuBadge>
                 )}
               </SidebarMenuItem>
             );
