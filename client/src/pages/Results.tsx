@@ -24,6 +24,16 @@ import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { DataTable } from "@/components/data-table";
 import type { ColumnDef } from "@tanstack/react-table";
 import * as XLSX from "xlsx";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Results() {
   const { id } = useParams();
@@ -31,6 +41,7 @@ export default function Results() {
   const [expandedDetail, setExpandedDetail] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [previews, setPreviews] = useState<Record<number, string[]>>({});
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const { user } = useAuthStore();
   const { settings } = useSettingsStore();
   const username = user?.username ?? "";
@@ -336,7 +347,7 @@ export default function Results() {
             </Empty>
           </CardContent>
         </Card>
-      ) : (
+      ) : (<>
         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {sessions.map((s) => (
             <Card key={s.sessionId} className="group relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
@@ -353,7 +364,7 @@ export default function Results() {
                       <span>{s.candidateCount ?? s.rankings?.length ?? 0} kandidat</span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeSession(s.sessionId)}>
+                  <Button variant="ghost" size="icon" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setDeletingId(s.sessionId)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
@@ -396,6 +407,24 @@ export default function Results() {
             </Card>
           ))}
         </div>
+
+        <AlertDialog open={deletingId !== null} onOpenChange={(open) => { if (!open) setDeletingId(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Hapus Sesi Perhitungan?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Data perhitungan "{sessions.find(s => s.sessionId === deletingId)?.sessionName ?? ""}" akan dihapus permanen. Apakah Anda yakin?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Batal</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { if (deletingId !== null) { removeSession(deletingId); } setDeletingId(null); }}>
+                Hapus
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        </>
       )}
     </div>
   );
