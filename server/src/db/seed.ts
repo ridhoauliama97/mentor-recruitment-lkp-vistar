@@ -86,7 +86,7 @@ export function seed() {
     (15, 1, 5, 1), (15, 2, 3, 8), (15, 3, 3, 13), (15, 4, 3, 18), (15, 5, 3, 23),
     (16, 1, 3, 3), (16, 2, 5, 6), (16, 3, 4, 12), (16, 4, 4, 17), (16, 5, 5, 21),
     (17, 1, 4, 2), (17, 2, 4, 7), (17, 3, 4, 12), (17, 4, 5, 16), (17, 5, 3, 23),
-    (18, 1, 5, 1), (18, 2, 5, 6), (18, 3, 5, 11), (18, 4, 5, 16), (18, 5, 5, 21),
+    (18, 1, 4, 2), (18, 2, 4, 7), (18, 3, 5, 11), (18, 4, 5, 16), (18, 5, 5, 21),
     (19, 1, 2, 4), (19, 2, 2, 9), (19, 3, 3, 13), (19, 4, 2, 19), (19, 5, 2, 24),
     (20, 1, 4, 2), (20, 2, 3, 8), (20, 3, 4, 12), (20, 4, 4, 17), (20, 5, 4, 22)
   `);
@@ -99,7 +99,7 @@ export function seed() {
 }
 
 export function seedSettings() {
-  run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('app_name', 'SPK Rekrutmen Mentor AI Engineer')");
-  run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('institution', 'LKP Academy Vistar')");
+  run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('app_name', 'LKP Academy Vistar')");
+  run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('institution', 'SPK Rekrutmen Mentor AI Engineer')");
   saveDb();
 }
