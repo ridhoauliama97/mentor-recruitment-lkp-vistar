@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
 } from "recharts";
-import { CalculatorIcon, Download, FileText, Trash2, ChevronDown, ChevronRight, Loader2 } from "@/components/ui/icons";
+import { ArrowRight, CalculatorIcon, Download, FileText, Trash2, ChevronDown, ChevronRight, Loader2 } from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { toast } from "sonner";
+import { api } from "@/lib/api";
+import type { PSIResult } from "@/types";
 import { usePSIStore } from "@/stores/psiStore";
 import { pdf } from "@react-pdf/renderer";
 import PSIPDF from "@/lib/pdf";
@@ -28,6 +30,7 @@ export default function Results() {
   const { sessions, currentResult, loading, fetchSessions, fetchSession, removeSession } = usePSIStore();
   const [expandedDetail, setExpandedDetail] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [previews, setPreviews] = useState<Record<number, string[]>>({});
 
   useEffect(() => {
     fetchSessions();
@@ -36,6 +39,20 @@ export default function Results() {
   useEffect(() => {
     if (id) fetchSession(Number(id));
   }, [id, fetchSession]);
+
+  useEffect(() => {
+    const cached = new Set(Object.keys(previews).map(Number));
+    sessions.forEach((s) => {
+      if (!cached.has(s.sessionId)) {
+        api.get<PSIResult>(`/psi/sessions/${s.sessionId}`).then((r) => {
+          setPreviews((prev) => ({
+            ...prev,
+            [s.sessionId]: r.rankings.slice(0, 3).map((rr) => rr.candidate.name),
+          }));
+        }).catch(() => {});
+      }
+    });
+  }, [sessions]);
 
   if (id && currentResult) {
     const r = currentResult;
@@ -273,21 +290,61 @@ export default function Results() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {sessions.map((s) => (
-            <Card key={s.sessionId} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <Link to={`/results/${s.sessionId}`} className="font-semibold text-secondary hover:underline dark:text-white">
+            <Card key={s.sessionId} className="group relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+              <div className="h-1 bg-gradient-to-r from-secondary to-accent" />
+              <CardContent className="p-5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <Link to={`/results/${s.sessionId}`} className="text-base font-semibold line-clamp-1 hover:text-secondary transition-colors">
                       {s.sessionName}
                     </Link>
-                    <p className="text-sm text-muted-foreground">{s.candidateCount ?? s.rankings?.length ?? 0} kandidat</p>
+                    <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{new Date(s.calculatedAt).toLocaleDateString("id-ID")}</span>
+                      <span>•</span>
+                      <span>{s.candidateCount ?? s.rankings?.length ?? 0} kandidat</span>
+                    </div>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => removeSession(s.sessionId)}>
+                  <Button variant="ghost" size="icon" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeSession(s.sessionId)}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>
+
+                {previews[s.sessionId] && (
+                  <>
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="mb-2 text-xs font-medium text-muted-foreground">Peringkat Teratas</p>
+                      <div className="space-y-1.5">
+                        {previews[s.sessionId].map((name, i) => (
+                          <Link key={i} to={`/results/${s.sessionId}`}
+                            className="flex items-center gap-2 text-sm hover:bg-muted/50 rounded-md -mx-1 px-1 py-0.5 transition-colors"
+                          >
+                            <span className={`inline-flex items-center justify-center size-5 rounded-full text-[10px] font-bold shrink-0 ${
+                              i === 0 ? "bg-yellow-100 text-yellow-700" :
+                              i === 1 ? "bg-gray-100 text-gray-500" :
+                              "bg-orange-100 text-orange-700"
+                            }`}>
+                              {i + 1}
+                            </span>
+                            <span className="truncate">{name}</span>
+                          </Link>
+                        ))}
+                      </div>
+                      {(s.candidateCount ?? 0) > 3 && (
+                        <p className="mt-2 text-xs text-muted-foreground">+{(s.candidateCount ?? 0) - 3} lainnya</p>
+                      )}
+                    </div>
+
+                    <div className="mt-4">
+                      <Link to={`/results/${s.sessionId}`}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-secondary hover:underline"
+                      >
+                        Lihat Detail <ArrowRight className="size-3" />
+                      </Link>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           ))}

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, CalendarIcon, Check, ChevronRight, Loader2 } from "@/components/ui/icons";
+import { ArrowLeft, ArrowRight, CalendarIcon, Check, ChevronRight, Loader2, Spinner } from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -387,8 +388,39 @@ export default function Calculation() {
             </CardHeader>
             <CardContent>
               {scoresLoading ? (
-                <div className="flex items-center justify-center py-8 text-muted-foreground">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Memuat data nilai...
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground mb-6">
+                    <Spinner size="md" />
+                    <span className="text-sm">Memuat data penilaian kandidat...</span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2 font-medium">Kandidat</th>
+                          {Array.from({ length: Math.max(critList.length, 2) }).map((_, i) => (
+                            <th key={i} className="p-2 text-center">
+                              <Skeleton className="h-4 w-16 mx-auto" />
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Array.from({ length: Math.max(candList.length, 3) }).map((_, i) => (
+                          <tr key={i} className="border-b last:border-0">
+                            <td className="p-2">
+                              <Skeleton className="h-4 w-28" />
+                            </td>
+                            {Array.from({ length: Math.max(critList.length, 2) }).map((_, j) => (
+                              <td key={j} className="p-2 text-center">
+                                <Skeleton className="h-4 w-12 mx-auto" />
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -531,7 +563,18 @@ export default function Calculation() {
         )}
 
         {step === 3 && detail && (
-          <Card>
+          <Card className="relative overflow-hidden">
+            {calcLoading && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-background/80 backdrop-blur-sm">
+                <Spinner size="lg" />
+                <p className="text-sm font-medium text-muted-foreground">Menyimpan hasil perhitungan...</p>
+                <div className="h-1.5 w-48 overflow-hidden rounded-full bg-muted">
+                  <div className="h-full w-full origin-left rounded-full bg-primary"
+                    style={{ animation: "progress-indeterminate 1.5s ease-in-out infinite" }}
+                  />
+                </div>
+              </div>
+            )}
             <CardHeader>
               <CardTitle>🏆 PSI Score & Ranking Akhir</CardTitle>
             </CardHeader>

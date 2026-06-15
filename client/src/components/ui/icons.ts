@@ -53,6 +53,7 @@ export { default as BrightnessDownIcon } from "./brightness-down-icon";
 export { default as CalculatorIcon } from "./calculator-icon";
 export { default as CalendarIcon } from "./calendar-icon";
 export { default as BrandReactIcon } from "./brand-react-icon";
+export { Spinner } from "./spinner";
 
 import type { ComponentType } from "react";
 import type { AnimatedIconProps } from "./types";

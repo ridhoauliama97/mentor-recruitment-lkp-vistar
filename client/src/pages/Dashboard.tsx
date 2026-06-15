@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, CalculatorIcon } from "@/components/ui/icons";
+import { CalculatorIcon } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Empty,
   EmptyContent,
@@ -180,28 +180,6 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Aksi Cepat</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <Link to="/candidates" className="block">
-                <Button variant="outline" className="w-full justify-between">
-                  Kelola Kandidat <ArrowRight className="size-4" />
-                </Button>
-              </Link>
-              <Link to="/criteria" className="block">
-                <Button variant="outline" className="w-full justify-between">
-                  Kelola Kriteria <ArrowRight className="size-4" />
-                </Button>
-              </Link>
-              <Link to="/results" className="block">
-                <Button variant="outline" className="w-full justify-between">
-                  Lihat Hasil <ArrowRight className="size-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
         </>
       )}
     </div>

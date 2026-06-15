@@ -11,6 +11,7 @@ import { useSettingsStore } from "@/stores/settingsStore";
 import { useAuthStore } from "@/stores/authStore";
 import { useCriteriaStore } from "@/stores/criteriaStore";
 import { useCandidateStore } from "@/stores/candidateStore";
+import { usePSIStore } from "@/stores/psiStore";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -28,8 +29,8 @@ const navItems = [
   { title: "Dashboard", url: "/", icon: BarChart3 },
   { title: "Kriteria", url: "/criteria", icon: ListChecks },
   { title: "Kandidat", url: "/candidates", icon: Users },
-  { title: "Perhitungan", url: "/calculation", icon: GaugeIcon },
-  { title: "Hasil", url: "/results", icon: TrophyIcon },
+  { title: "Proses PSI", url: "/calculation", icon: GaugeIcon },
+  { title: "Hasil Perhitungan", url: "/results", icon: TrophyIcon },
   { title: "Pengaturan", url: "/settings", icon: Settings },
 ];
 
@@ -40,13 +41,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, logout } = useAuthStore();
   const { criteria, fetch: fetchCriteria } = useCriteriaStore();
   const { candidates, fetch: fetchCandidates } = useCandidateStore();
+  const { sessions, fetchSessions } = usePSIStore();
   const appName = settings.app_name ?? "Coach PSI";
 
   useEffect(() => {
     if (!settings.app_name) fetchSettings();
     fetchCriteria();
     fetchCandidates();
-  }, [settings.app_name, fetchSettings, fetchCriteria, fetchCandidates]);
+    fetchSessions();
+  }, [settings.app_name, fetchSettings, fetchCriteria, fetchCandidates, fetchSessions]);
 
   const handleLogout = () => {
     logout();
@@ -82,7 +85,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               ? criteria.length
               : item.url === "/candidates"
                 ? candidates.length
-                : undefined,
+                : item.url === "/results"
+                  ? sessions.length
+                  : undefined,
           }))}
         />
       </SidebarContent>
