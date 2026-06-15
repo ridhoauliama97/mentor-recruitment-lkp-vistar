@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { PSIResult } from "@/types";
 import { usePSIStore } from "@/stores/psiStore";
+import { useAuthStore } from "@/stores/authStore";
+import { useSettingsStore } from "@/stores/settingsStore";
 import { pdf } from "@react-pdf/renderer";
 import PSIPDF from "@/lib/pdf";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
@@ -29,6 +31,10 @@ export default function Results() {
   const [expandedDetail, setExpandedDetail] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [previews, setPreviews] = useState<Record<number, string[]>>({});
+  const { user } = useAuthStore();
+  const { settings } = useSettingsStore();
+  const username = user?.username ?? "";
+  const appName = settings.app_name ?? "LKP Academy Vistar";
 
   useEffect(() => {
     fetchSessions();
@@ -214,7 +220,7 @@ export default function Results() {
             onClick={async () => {
               setPdfLoading(true);
               try {
-                const blob = await pdf(<PSIPDF result={r} />).toBlob();
+                const blob = await pdf(<PSIPDF result={r} exportedAt={new Date()} username={username} appName={appName} />).toBlob();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;

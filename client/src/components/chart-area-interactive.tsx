@@ -39,7 +39,7 @@ export function ChartAreaInteractive({
 
   const header = (
     <div>
-      <h3 className="text-lg font-semibold">Top Kandidat</h3>
+      <h3 className="text-lg font-semibold">Top 5 Kandidat</h3>
       <p className="text-sm text-muted-foreground">
         {sessionName ?? "Hasil perhitungan PSI terbaru"}
       </p>

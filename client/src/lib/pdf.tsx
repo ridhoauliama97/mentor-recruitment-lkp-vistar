@@ -4,8 +4,19 @@ import {
   View,
   Text,
   StyleSheet,
+  Font,
 } from "@react-pdf/renderer";
 import type { PSIResult } from "@/types";
+
+Font.register({
+  family: "Noto Serif",
+  fonts: [
+    { src: "/fonts/NotoSerif-Regular.ttf", fontWeight: 400 },
+    { src: "/fonts/NotoSerif-Medium.ttf", fontWeight: 500 },
+    { src: "/fonts/NotoSerif-SemiBold.ttf", fontWeight: 600 },
+    { src: "/fonts/NotoSerif-Bold.ttf", fontWeight: 700 },
+  ],
+});
 
 const colors = {
   primary: "#1E3A5F",
@@ -20,25 +31,32 @@ const colors = {
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: "Noto Serif",
     color: colors.text,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 700,
+    fontFamily: "Noto Serif",
     color: colors.primary,
+    textAlign: "center",
     marginBottom: 4,
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 9,
+    fontFamily: "Noto Serif",
     color: colors.muted,
-    marginBottom: 20,
+    textAlign: "center",
+    marginBottom: 10,
+    lineHeight: 1.4,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 700,
+    fontFamily: "Noto Serif",
     color: colors.primary,
-    marginTop: 16,
+    marginTop: 10,
     marginBottom: 8,
     paddingBottom: 4,
     borderBottomWidth: 1,
@@ -52,13 +70,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: colors.primary,
     paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     borderRadius: 2,
   },
   tableRow: {
     flexDirection: "row",
     paddingVertical: 5,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     alignItems: "center",
@@ -66,33 +84,24 @@ const styles = StyleSheet.create({
   tableRowAlt: {
     backgroundColor: "#f8fafc",
   },
-  cellRank: { width: "10%", fontSize: 10, fontWeight: 600 },
-  cellName: { width: "30%", fontSize: 10 },
-  cellScore: { width: "20%", fontSize: 10, textAlign: "center" },
-  cellStatus: { width: "20%", fontSize: 10, textAlign: "center" },
-  cellRecommended: { width: "20%", fontSize: 10, textAlign: "center" },
+  cellRank: { width: "8%", fontSize: 8, fontWeight: 600, textAlign: "center" },
+  cellName: { width: "27%", fontSize: 8 },
+  cellEmail: { width: "27%", fontSize: 8 },
+  cellScore: { width: "13%", fontSize: 8, textAlign: "center" },
+  cellRecommended: { width: "25%", fontSize: 8, textAlign: "center" },
   headerText: {
     color: colors.white,
-    fontSize: 9,
-    fontWeight: 600,
-    textTransform: "uppercase",
-  },
-  badge: {
-    backgroundColor: colors.accent,
-    color: colors.primary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
     fontSize: 8,
+    fontFamily: "Noto Serif",
     fontWeight: 700,
+    textTransform: "uppercase",
+    textAlign: "center",
   },
-  badgeDefault: {
-    backgroundColor: colors.border,
-    color: colors.muted,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    fontSize: 8,
+  rankHighlight: {
+    flexDirection: "row",
+    backgroundColor: "#fef6e0",
+    borderLeftWidth: 3,
+    borderLeftColor: colors.accent,
   },
   detailTable: {
     width: "100%",
@@ -120,56 +129,67 @@ const styles = StyleSheet.create({
     right: 40,
     textAlign: "center",
     fontSize: 8,
+    fontFamily: "Noto Serif",
     color: colors.muted,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingTop: 8,
   },
-  medal: {
-    fontSize: 16,
-    marginRight: 4,
-  },
-  rankHighlight: {
-    flexDirection: "row",
-    backgroundColor: "#fef6e0",
-    borderLeftWidth: 3,
-    borderLeftColor: colors.accent,
-  },
 });
 
-function formatDate(dateStr?: string) {
-  if (!dateStr) return "-";
+function formatDateTime(date: Date) {
   try {
-    return new Date(dateStr).toLocaleDateString("id-ID", {
-      year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit",
-    });
+    const months = [
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+    ];
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()} pukul ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
   } catch {
-    return dateStr;
+    return date.toISOString();
   }
-}
-
-function getMedal(rank: number) {
-  if (rank === 1) return "🥇";
-  if (rank === 2) return "🥈";
-  if (rank === 3) return "🥉";
-  return "";
 }
 
 interface PSIPDFProps {
   result: PSIResult;
+  exportedAt?: Date;
+  username?: string;
+  appName?: string;
 }
 
-export default function PSIPDF({ result }: PSIPDFProps) {
+function RankBadge({ rank }: { rank: number }) {
+  const badgeColors: Record<number, { bg: string; text: string }> = {
+    1: { bg: "#F0A500", text: "#1a202c" },
+    2: { bg: "#94A3B8", text: "#ffffff" },
+    3: { bg: "#CD7F32", text: "#ffffff" },
+  };
+  const c = badgeColors[rank];
+  if (!c) return null;
+  return (
+    <View style={{
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      backgroundColor: c.bg,
+      justifyContent: "center",
+      alignItems: "center",
+    }}>
+      <Text style={{ fontSize: 9, fontWeight: 700, fontFamily: "Noto Serif", color: c.text }}>{rank}</Text>
+    </View>
+  );
+}
+
+export default function PSIPDF({ result, exportedAt, username, appName }: PSIPDFProps) {
   const r = result;
-  const criteriaCount = r.calculationDetail?.normalizedMatrix?.[0]?.length ?? 0;
+  const now = exportedAt ?? new Date();
   const criteriaLabels = r.calculationDetail?.meanValues?.map((_, i) => `C${i + 1}`) ?? [];
+  const app = appName || "LKP Academy Vistar";
 
   return (
     <Document title={r.sessionName}>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.title}>{r.sessionName}</Text>
+        <Text style={styles.title}>{app}</Text>
         <Text style={styles.subtitle}>
-          Tanggal: {formatDate(r.calculatedAt)} | {r.rankings.length} kandidat | {criteriaCount} kriteria
+          Laporan Hasil Perhitungan Sistem Pendukung Keputusan Untuk Rekrutmen Mentor Bidang Ai Engineer pada LKP academy Vistar Menggunakan Metode PSI — {r.sessionName}
         </Text>
 
         <Text style={styles.sectionTitle}>Ranking & PSI Score</Text>
@@ -177,8 +197,8 @@ export default function PSIPDF({ result }: PSIPDFProps) {
           <View style={styles.tableHeader}>
             <Text style={[styles.cellRank, styles.headerText]}>Rank</Text>
             <Text style={[styles.cellName, styles.headerText]}>Kandidat</Text>
+            <Text style={[styles.cellEmail, styles.headerText]}>Email</Text>
             <Text style={[styles.cellScore, styles.headerText]}>PSI Score</Text>
-            <Text style={[styles.cellStatus, styles.headerText]}>Status</Text>
             <Text style={[styles.cellRecommended, styles.headerText]}>Rekomendasi</Text>
           </View>
           {r.rankings.map((rank, i) => (
@@ -190,39 +210,24 @@ export default function PSIPDF({ result }: PSIPDFProps) {
                 rank.isRecommended ? styles.rankHighlight : {},
               ]}
             >
-              <Text style={styles.cellRank}>
-                {getMedal(rank.rank)}{rank.rank}
-              </Text>
+              <View style={[styles.cellRank, { flexDirection: "row", alignItems: "center", justifyContent: "center" }]}>
+                {rank.rank <= 3 ? <RankBadge rank={rank.rank} /> : <Text>{rank.rank}</Text>}
+              </View>
               <Text style={styles.cellName}>{rank.candidate.name}</Text>
-              <Text style={styles.cellScore}>{rank.psiScore.toFixed(6)}</Text>
-              <Text style={styles.cellStatus}>{rank.candidate.status === "active" ? "Aktif" : "Nonaktif"}</Text>
+              <Text style={styles.cellEmail}>{rank.candidate.email}</Text>
+              <Text style={styles.cellScore}>{rank.psiScore.toFixed(4)}</Text>
               <Text style={styles.cellRecommended}>
-                {rank.isRecommended ? "✅ Ya" : "—"}
+                {rank.isRecommended ? "Ya" : "Tidak"}
               </Text>
             </View>
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Detail Kandidat</Text>
-        {r.rankings.map((rank) => (
-          <View key={rank.candidate.id} style={{ marginBottom: 6 }}>
-            <Text style={{ fontSize: 10, fontWeight: 600 }}>
-              #{rank.rank} — {rank.candidate.name}
-            </Text>
-            <Text style={{ fontSize: 9, color: colors.muted, marginLeft: 8 }}>
-              Email: {rank.candidate.email}
-              {rank.candidate.phone ? ` | Telp: ${rank.candidate.phone}` : ""}
-              {rank.candidate.institution ? ` | ${rank.candidate.institution}` : ""}
-              {rank.candidate.expertise ? ` | ${rank.candidate.expertise}` : ""}
-            </Text>
-          </View>
-        ))}
-
         {r.calculationDetail && (
           <>
             <Text style={styles.sectionTitle}>Detail Perhitungan PSI</Text>
 
-            <Text style={{ fontSize: 10, fontWeight: 600, marginBottom: 4, marginTop: 8 }}>
+            <Text style={{ fontSize: 11, fontFamily: "Noto Serif", fontWeight: 600, marginBottom: 4, marginTop: 8 }}>
               Matriks Normalisasi
             </Text>
             <View style={styles.detailTable}>
@@ -249,7 +254,7 @@ export default function PSIPDF({ result }: PSIPDFProps) {
               { label: "Bobot Φ_j", data: r.calculationDetail.overallPreference },
             ].map((section) => (
               <View key={section.label}>
-                <Text style={{ fontSize: 10, fontWeight: 600, marginBottom: 4, marginTop: 8 }}>
+                <Text style={{ fontSize: 11, fontFamily: "Noto Serif", fontWeight: 600, marginBottom: 4, marginTop: 8 }}>
                   {section.label}
                 </Text>
                 <View style={styles.detailTable}>
@@ -262,14 +267,14 @@ export default function PSIPDF({ result }: PSIPDFProps) {
                   <View style={styles.detailRow}>
                     <Text style={styles.detailCellLabel}>Value</Text>
                     {section.data.map((val, j) => (
-                      <Text key={j} style={styles.detailCell}>{val.toFixed(6)}</Text>
+                      <Text key={j} style={styles.detailCell}>{val.toFixed(4)}</Text>
                     ))}
                   </View>
                 </View>
               </View>
             ))}
 
-            <Text style={{ fontSize: 10, fontWeight: 600, marginBottom: 4, marginTop: 8 }}>
+            <Text style={{ fontSize: 11, fontFamily: "Noto Serif", fontWeight: 600, marginBottom: 4, marginTop: 8 }}>
               PSI Score Akhir
             </Text>
             <View style={styles.detailTable}>
@@ -277,10 +282,10 @@ export default function PSIPDF({ result }: PSIPDFProps) {
                 <Text style={[styles.detailCellLabel, { color: colors.primary, fontWeight: 700 }]}>Kandidat</Text>
                 <Text style={[styles.detailCell, { color: colors.primary, fontWeight: 700 }]}>Score</Text>
               </View>
-              {r.calculationDetail.psiScores.map((score, i) => (
-                <View key={i} style={[styles.detailRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
-                  <Text style={styles.detailCellLabel}>{r.rankings[i]?.candidate.name ?? `C${i + 1}`}</Text>
-                  <Text style={styles.detailCell}>{score.toFixed(6)}</Text>
+              {r.rankings.map((rank, i) => (
+                <View key={rank.candidate.id} style={[styles.detailRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
+                  <Text style={styles.detailCellLabel}>{rank.candidate.name}</Text>
+                  <Text style={styles.detailCell}>{rank.psiScore.toFixed(4)}</Text>
                 </View>
               ))}
             </View>
@@ -288,7 +293,7 @@ export default function PSIPDF({ result }: PSIPDFProps) {
         )}
 
         <Text style={styles.footer}>
-          Generated by Mentor Recruitment PSI — {formatDate(new Date().toISOString())}
+          Dicetak oleh : {username || "—"} pada {formatDateTime(now)} — {app}
         </Text>
       </Page>
     </Document>

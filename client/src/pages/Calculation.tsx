@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, CalendarIcon, Check, ChevronRight, Loader2, Spinner } from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +16,7 @@ import { usePSIStore } from "@/stores/psiStore";
 import { api } from "@/lib/api";
 import { calculatePSI } from "@/lib/psi";
 import type { PSICalculationDetail } from "@/types";
+import "@aejkatappaja/phantom-ui";
 
 const steps = ["Konfigurasi", "Matriks", "Perhitungan", "Konfirmasi"];
 
@@ -125,6 +125,7 @@ export default function Calculation() {
       setSelectedCandidates(candIds);
       setSelectedCriteria(critIds);
 
+      setStep(1);
       setScoresLoading(true);
       try {
         const scorePromises = candIds.map((cid) =>
@@ -158,6 +159,7 @@ export default function Calculation() {
         setMissingScores(true);
       }
       setScoresLoading(false);
+      return;
     }
     if (step === 1) {
       const critList = activeCriteria.filter((c) => selectedCriteria.includes(c.id));
@@ -387,96 +389,60 @@ export default function Calculation() {
               <CardTitle>📊 Matriks Keputusan (Nilai Asli)</CardTitle>
             </CardHeader>
             <CardContent>
-              {scoresLoading ? (
-                <div className="space-y-4 py-4">
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground mb-6">
-                    <Spinner size="md" />
-                    <span className="text-sm">Memuat data penilaian kandidat...</span>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-2 font-medium">Kandidat</th>
-                          {Array.from({ length: Math.max(critList.length, 2) }).map((_, i) => (
-                            <th key={i} className="p-2 text-center">
-                              <Skeleton className="h-4 w-16 mx-auto" />
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {Array.from({ length: Math.max(candList.length, 3) }).map((_, i) => (
-                          <tr key={i} className="border-b last:border-0">
-                            <td className="p-2">
-                              <Skeleton className="h-4 w-28" />
-                            </td>
-                            {Array.from({ length: Math.max(critList.length, 2) }).map((_, j) => (
-                              <td key={j} className="p-2 text-center">
-                                <Skeleton className="h-4 w-12 mx-auto" />
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+              {!scoresLoading && missingScores && (
+                <div className="mb-4 p-3 rounded-lg bg-orange-50 border border-orange-200 text-sm text-orange-800">
+                  Beberapa kandidat belum memiliki nilai pada kriteria tertentu (ditampilkan sebagai 0).
+                  Lengkapi nilai di halaman Kandidat terlebih dahulu.
                 </div>
-              ) : (
-                <>
-                  {missingScores && (
-                    <div className="mb-4 p-3 rounded-lg bg-orange-50 border border-orange-200 text-sm text-orange-800">
-                      Beberapa kandidat belum memiliki nilai pada kriteria tertentu (ditampilkan sebagai 0).
-                      Lengkapi nilai di halaman Kandidat terlebih dahulu.
-                    </div>
-                  )}
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left p-2 font-medium">Kandidat</th>
-                          {critList.map((c) => (
-                            <th key={c.id} className="p-2 font-medium text-center">
-                              {c.name}
-                              <Badge variant={c.type === "benefit" ? "success" : "warning"} className="ml-1 text-[10px]">
-                                {c.type === "benefit" ? "B" : "C"}
-                              </Badge>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {candList.map((cand, i) => (
-                          <tr key={cand.id} className="border-b last:border-0 hover:bg-muted/30">
-                            <td className="p-2 font-medium">{cand.name}</td>
-                            {critList.map((crit, j) => {
-                              const val = matrix[i]?.[j];
-                              const label = matrixLabels[i]?.[j];
-                              const isMissing = val === 0;
-                              return (
-                                <Tooltip key={crit.id}>
-                                  <TooltipTrigger asChild>
-                                    <td
-                                      className={`p-2 text-center font-mono cursor-help ${isMissing ? "bg-red-50 text-red-500" : ""}`}
-                                    >
-                                      {isMissing ? "—" : formatNumber(val, 2)}
-                                    </td>
-                                  </TooltipTrigger>
-                                  {label && (
-                                    <TooltipContent side="top" className="text-xs">
-                                      {label}
-                                    </TooltipContent>
-                                  )}
-                                </Tooltip>
-                              );
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
               )}
+              <phantom-ui loading={scoresLoading} animation="shimmer" reveal={0.2}>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-2 font-medium">Kandidat</th>
+                        {critList.map((c) => (
+                          <th key={c.id} className="p-2 font-medium text-center">
+                            {c.name}
+                            <Badge variant={c.type === "benefit" ? "success" : "warning"} className="ml-1 text-[10px]">
+                              {c.type === "benefit" ? "B" : "C"}
+                            </Badge>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {candList.map((cand, i) => (
+                        <tr key={cand.id} className="border-b last:border-0 hover:bg-muted/30">
+                          <td className="p-2 font-medium">{cand.name}</td>
+                          {critList.map((crit, j) => {
+                            const rawVal = matrix[i]?.[j];
+                            const val = rawVal ?? 5;
+                            const label = matrixLabels[i]?.[j];
+                            const isMissing = rawVal !== undefined && rawVal === 0;
+                            return (
+                              <Tooltip key={crit.id}>
+                                <TooltipTrigger asChild>
+                                  <td
+                                    className={`p-2 text-center font-mono cursor-help ${isMissing ? "bg-red-50 text-red-500" : ""}`}
+                                  >
+                                    {rawVal !== undefined ? (isMissing ? "—" : formatNumber(val, 2)) : formatNumber(val, 2)}
+                                  </td>
+                                </TooltipTrigger>
+                                {label && (
+                                  <TooltipContent side="top" className="text-xs">
+                                    {label}
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </phantom-ui>
             </CardContent>
           </Card>
         )}
