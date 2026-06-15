@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
-} from "recharts";
-import { ArrowRight, CalculatorIcon, Download, FileText, Trash2, ChevronDown, ChevronRight, Loader2 } from "@/components/ui/icons";
+import { ArrowRight, CalculatorIcon, Download, FileText, FileSpreadsheet, Trash2, ChevronDown, ChevronRight, Loader2 } from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +18,10 @@ import type { PSIResult } from "@/types";
 import { usePSIStore } from "@/stores/psiStore";
 import { pdf } from "@react-pdf/renderer";
 import PSIPDF from "@/lib/pdf";
-
-const COLORS = ["#1E3A5F", "#2E86AB", "#F0A500", "#27AE60", "#E74C3C", "#8B5CF6"];
+import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { DataTable } from "@/components/data-table";
+import type { ColumnDef } from "@tanstack/react-table";
+import * as XLSX from "xlsx";
 
 export default function Results() {
   const { id } = useParams();
@@ -57,27 +55,65 @@ export default function Results() {
   if (id && currentResult) {
     const r = currentResult;
 
-    const radarData = r.calculationDetail ? r.calculationDetail.normalizedMatrix[0]?.map((_, ci) => {
-      const entry: Record<string, string | number> = { criteria: r.rankings[0]?.candidate?.name || `C${ci}` };
-      r.rankings.slice(0, 3).forEach((rank) => {
-        entry[rank.candidate.name] = r.calculationDetail?.normalizedMatrix[
-          r.rankings.findIndex((rr) => rr.candidate.id === rank.candidate.id)
-        ]?.[ci] ?? 0;
-      });
-      return entry;
-    }) : [];
-
-    const barData = r.rankings.map((rank) => ({
-      name: rank.candidate.name,
-      score: rank.psiScore,
-      recommended: rank.isRecommended,
-    }));
-
     const getHeatColor = (val: number, min: number, max: number) => {
       if (max === min) return "transparent";
       const ratio = (val - min) / (max - min);
-      return `rgb(${Math.round(220 - ratio * 190)}, ${Math.round(220 - ratio * 80)}, ${Math.round(220 - ratio * 180)})`;
+      const alpha = 0.08 + ratio * 0.25;
+      return `rgba(46, 134, 171, ${alpha})`;
     };
+
+    const chartData = r.rankings.slice(0, 5).map((r) => ({
+      name: r.candidate.name,
+      score: Number(r.psiScore.toFixed(4)),
+      rank: r.rank,
+    }));
+
+    interface CandidateRow {
+      rank: number;
+      name: string;
+      score: number;
+      recommended: boolean;
+    }
+
+    const tableColumns: ColumnDef<CandidateRow>[] = [
+      {
+        accessorKey: "rank",
+        header: "Peringkat",
+        cell: ({ row }) => (
+          <span className="font-mono font-medium">{row.original.rank}</span>
+        ),
+      },
+      {
+        accessorKey: "name",
+        header: "Nama",
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.name}</span>
+        ),
+      },
+      {
+        accessorKey: "score",
+        header: "Skor PSI",
+        cell: ({ row }) => (
+          <span className="font-mono">{row.original.score.toFixed(4)}</span>
+        ),
+      },
+      {
+        accessorKey: "recommended",
+        header: "Rekomendasi",
+        cell: ({ row }) => (
+          row.original.recommended
+            ? <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Direkomendasikan</Badge>
+            : <Badge variant="secondary">Tidak</Badge>
+        ),
+      },
+    ];
+
+    const tableData: CandidateRow[] = r.rankings.map((rr) => ({
+      rank: rr.rank,
+      name: rr.candidate.name,
+      score: rr.psiScore,
+      recommended: rr.isRecommended,
+    }));
 
     return (
       <div className="space-y-6">
@@ -87,62 +123,44 @@ export default function Results() {
           <Badge>{r.rankings.filter((rr) => rr.isRecommended).length} Direkomendasikan</Badge>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           {r.rankings.slice(0, 3).map((rank, i) => (
             <Card key={rank.rank} className={i === 0 ? "border-accent border-2" : ""}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{["🥇", "🥈", "🥉"][i]}</span>
-                  <div>
-                    <p className="font-semibold">#{rank.rank} {rank.candidate.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      PSI Score: <span className="font-mono font-bold">{rank.psiScore.toFixed(4)}</span>
-                    </p>
-                    {rank.isRecommended && (
-                      <Badge variant="success" className="mt-1">Direkomendasikan</Badge>
-                    )}
-                  </div>
+              <CardContent className="p-4 flex items-center gap-3">
+                <span className="text-2xl">{["🥇", "🥈", "🥉"][i]}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold truncate">{rank.candidate.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    PSI Score: <span className="font-mono font-bold">{rank.psiScore.toFixed(4)}</span>
+                  </p>
+                  {rank.isRecommended && (
+                    <Badge variant="success" className="mt-1">Direkomendasikan</Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {radarData.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Radar Chart — 3 Teratas</CardTitle></CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <RadarChart data={radarData}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="criteria" />
-                  <PolarRadiusAxis angle={30} domain={[0, 1]} />
-                  {r.rankings.slice(0, 3).map((rank, i) => (
-                    <Radar key={rank.candidate.id} dataKey={rank.candidate.name} stroke={COLORS[i]} fill={COLORS[i]} fillOpacity={0.2} />
-                  ))}
-                  <Legend />
-                </RadarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
-
         <Card>
-          <CardHeader>
-            <CardTitle>PSI Score — Semua Kandidat</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="category" dataKey="name" />
-                <YAxis type="number" domain={[0, 1]} tickFormatter={(v) => v.toFixed(2)} />
-                <Tooltip formatter={(v: number) => v.toFixed(4)} />
-                <Bar dataKey="score" fill="var(--secondary)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            <div className={tableData.length > 0 ? "lg:border-r h-full" : "h-full"}>
+              <ChartAreaInteractive
+                variant="content"
+                data={chartData}
+                sessionName={r.sessionName}
+              />
+            </div>
+            {tableData.length > 0 && (
+              <div className="p-6">
+                <h3 className="mb-1 text-lg font-semibold">Hasil Ranking</h3>
+                {r.sessionName && (
+                  <p className="mb-4 text-sm text-muted-foreground">{r.sessionName}</p>
+                )}
+                <DataTable columns={tableColumns} data={tableData} pageSize={5} />
+              </div>
+            )}
+          </div>
         </Card>
 
         {r.calculationDetail && (
@@ -258,6 +276,29 @@ export default function Results() {
             URL.revokeObjectURL(url);
           }}>
             <Download className="mr-2 h-4 w-4" /> Export CSV
+          </Button>
+          <Button variant="outline" onClick={() => {
+            const wsData = [
+              ["Rank", "Nama", "Email", "Phone", "Pendidikan", "Instansi", "Keahlian", "PSI Score", "Direkomendasikan"],
+              ...r.rankings.map((rr) => [
+                rr.rank,
+                rr.candidate.name,
+                rr.candidate.email,
+                rr.candidate.phone ?? "",
+                rr.candidate.education ?? "",
+                rr.candidate.institution ?? "",
+                rr.candidate.expertise ?? "",
+                Number(rr.psiScore.toFixed(6)),
+                rr.isRecommended ? "Ya" : "Tidak",
+              ]),
+            ];
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            ws["!cols"] = wsData[0].map((_, i) => ({ wch: i === 1 ? 30 : 18 }));
+            XLSX.utils.book_append_sheet(wb, ws, "Hasil PSI");
+            XLSX.writeFile(wb, `${r.sessionName}.xlsx`);
+          }}>
+            <FileSpreadsheet className="mr-2 h-4 w-4" /> Export Excel
           </Button>
         </div>
       </div>
