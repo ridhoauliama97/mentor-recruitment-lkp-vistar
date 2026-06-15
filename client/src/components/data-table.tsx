@@ -17,11 +17,9 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import {
+  ArrowBigLeftIcon,
+  ArrowBigRightIcon,
   ChevronDown,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
   ChevronRight,
 } from "@/components/ui/icons"
 import { Button } from "@/components/ui/button"
@@ -143,9 +141,9 @@ export function DataTable<TData, TValue>({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -213,15 +211,14 @@ export function DataTable<TData, TValue>({
         <div className="flex w-fit items-center justify-center text-sm font-medium">
           Page {pageIndex + 1} of {pageCount}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Button
             variant="outline"
-            className="hidden h-8 w-8 p-0 lg:flex"
+            className="h-8 px-3 text-xs"
             onClick={() => table.setPageIndex(0)}
             disabled={!table.getCanPreviousPage()}
           >
-            <span className="sr-only">Halaman pertama</span>
-            <ChevronsLeftIcon />
+            First
           </Button>
           <Button
             variant="outline"
@@ -231,7 +228,7 @@ export function DataTable<TData, TValue>({
             disabled={!table.getCanPreviousPage()}
           >
             <span className="sr-only">Halaman sebelumnya</span>
-            <ChevronLeftIcon />
+            <ArrowBigLeftIcon />
           </Button>
           <Button
             variant="outline"
@@ -241,17 +238,15 @@ export function DataTable<TData, TValue>({
             disabled={!table.getCanNextPage()}
           >
             <span className="sr-only">Halaman selanjutnya</span>
-            <ChevronRightIcon />
+            <ArrowBigRightIcon />
           </Button>
           <Button
             variant="outline"
-            className="hidden size-8 lg:flex"
-            size="icon"
+            className="h-8 px-3 text-xs"
             onClick={() => table.setPageIndex(pageCount - 1)}
             disabled={!table.getCanNextPage()}
           >
-            <span className="sr-only">Halaman terakhir</span>
-            <ChevronsRightIcon />
+            Last
           </Button>
         </div>
       </div>

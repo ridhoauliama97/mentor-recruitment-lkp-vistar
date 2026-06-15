@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, ChevronRight, Loader2 } from "@/components/ui/icons";
+import { ArrowLeft, ArrowRight, CalendarIcon, Check, ChevronRight, Loader2 } from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { id } from "date-fns/locale";
 import { useCandidateStore } from "@/stores/candidateStore";
 import { useCriteriaStore } from "@/stores/criteriaStore";
 import { usePSIStore } from "@/stores/psiStore";
@@ -52,7 +56,7 @@ export default function Calculation() {
   const [step, setStep] = useState(0);
   const [selectedCandidates, setSelectedCandidates] = useState<number[]>([]);
   const [selectedCriteria, setSelectedCriteria] = useState<number[]>([]);
-  const [sessionName, setSessionName] = useState("");
+  const [sessionDate, setSessionDate] = useState<Date>(new Date());
   const [description, setDescription] = useState("");
   const [detail, setDetail] = useState<PSICalculationDetail | null>(null);
   const [matrix, setMatrix] = useState<number[][]>([]);
@@ -61,6 +65,11 @@ export default function Calculation() {
   const [missingScores, setMissingScores] = useState(false);
   const [candidateSearch, setCandidateSearch] = useState("");
   const [criteriaSearch, setCriteriaSearch] = useState("");
+
+  const sessionName = useMemo(
+    () => format(sessionDate, "'Sesi' d MMMM yyyy HH:mm", { locale: id }),
+    [sessionDate],
+  );
 
   useEffect(() => {
     fetchCandidates();
@@ -160,7 +169,7 @@ export default function Calculation() {
   const handleSave = async () => {
     try {
       const result = await calculate({
-        sessionName: sessionName || `Sesi ${new Date().toLocaleDateString("id-ID")}`,
+        sessionName,
         description,
         candidateIds: selectedCandidates,
         criteriaIds: selectedCriteria,
@@ -197,18 +206,63 @@ export default function Calculation() {
         {step === 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Konfigurasi Sesi</CardTitle>
+              <CardTitle>Konfigurasi Sesi Perhitungan</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Nama Sesi</label>
-                <input
-                  required
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={sessionName}
-                  onChange={(e) => setSessionName(e.target.value)}
-                  placeholder={`Sesi ${new Date().toLocaleDateString("id-ID")}`}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {format(sessionDate, "d MMMM yyyy HH:mm", { locale: id })}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={sessionDate}
+                      onSelect={(date) => date && setSessionDate(date)}
+                      initialFocus
+                    />
+                    <div className="border-t p-3 flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Jam:</span>
+                      <select
+                        className="rounded-md border border-input bg-background px-2 py-1 text-sm"
+                        value={sessionDate.getHours()}
+                        onChange={(e) => {
+                          const d = new Date(sessionDate);
+                          d.setHours(Number(e.target.value));
+                          setSessionDate(d);
+                        }}
+                      >
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <option key={i} value={i}>{String(i).padStart(2, "0")}</option>
+                        ))}
+                      </select>
+                      <span className="text-sm text-muted-foreground">:</span>
+                      <select
+                        className="rounded-md border border-input bg-background px-2 py-1 text-sm"
+                        value={sessionDate.getMinutes()}
+                        onChange={(e) => {
+                          const d = new Date(sessionDate);
+                          d.setMinutes(Number(e.target.value));
+                          setSessionDate(d);
+                        }}
+                      >
+                        {Array.from({ length: 60 }, (_, i) => (
+                          <option key={i} value={i}>{String(i).padStart(2, "0")}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Nama sesi akan otomatis: <span className="font-medium">{sessionName}</span>
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Deskripsi</label>

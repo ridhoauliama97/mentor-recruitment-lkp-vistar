@@ -1,9 +1,9 @@
 import {
   BarChart3,
-  GraduationCap,
+  GaugeIcon,
   ListChecks,
   Settings,
-  SlidersHorizontal,
+  TrophyIcon,
   Users,
 } from "@/components/ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -28,8 +28,8 @@ const navItems = [
   { title: "Dashboard", url: "/", icon: BarChart3 },
   { title: "Kriteria", url: "/criteria", icon: ListChecks },
   { title: "Kandidat", url: "/candidates", icon: Users },
-  { title: "Perhitungan", url: "/calculation", icon: SlidersHorizontal },
-  { title: "Hasil", url: "/results", icon: GraduationCap },
+  { title: "Perhitungan", url: "/calculation", icon: GaugeIcon },
+  { title: "Hasil", url: "/results", icon: TrophyIcon },
   { title: "Pengaturan", url: "/settings", icon: Settings },
 ];
 

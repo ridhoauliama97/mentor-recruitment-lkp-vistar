@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export default function Candidates() {
-  const { candidates, loading, error, fetch, create, update, remove } = useCandidateStore();
+  const { candidates, loading, fetch, create, update, remove } = useCandidateStore();
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Candidate | null>(null);
   const [deleting, setDeleting] = useState<Candidate | null>(null);
@@ -153,12 +153,6 @@ export default function Candidates() {
         </Button>
       </div>
 
-      {error && (
-        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-800">
-          {error}
-        </div>
-      )}
-
       <DataTable columns={columns} data={candidates} pageSize={10} />
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
@@ -168,7 +162,7 @@ export default function Candidates() {
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div>
-              <label className="block text-sm font-medium mb-1">Nama</label>
+              <label className="block text-sm font-medium mb-1">Nama Lengkap</label>
               <input
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={form.name}
@@ -186,7 +180,7 @@ export default function Candidates() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Telepon</label>
+              <label className="block text-sm font-medium mb-1">No HP/WhatsApp</label>
               <input
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={form.phone}
@@ -195,7 +189,7 @@ export default function Candidates() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Pendidikan</label>
+              <label className="block text-sm font-medium mb-1">Pendidikan Terakhir</label>
               <input
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={form.education}
@@ -204,7 +198,7 @@ export default function Candidates() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Institusi</label>
+              <label className="block text-sm font-medium mb-1">Nama Universitas/Institusi</label>
               <input
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={form.institution}

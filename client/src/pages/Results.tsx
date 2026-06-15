@@ -4,10 +4,18 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend,
 } from "recharts";
-import { Download, FileText, Trash2, ChevronDown, ChevronRight, Loader2 } from "@/components/ui/icons";
+import { CalculatorIcon, Download, FileText, Trash2, ChevronDown, ChevronRight, Loader2 } from "@/components/ui/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { toast } from "sonner";
 import { usePSIStore } from "@/stores/psiStore";
 import { pdf } from "@react-pdf/renderer";
@@ -109,12 +117,12 @@ export default function Results() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={barData} layout="vertical">
+              <BarChart data={barData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" domain={[0, 1]} tickFormatter={(v) => v.toFixed(2)} />
-                <YAxis type="category" dataKey="name" width={120} />
+                <XAxis type="category" dataKey="name" />
+                <YAxis type="number" domain={[0, 1]} tickFormatter={(v) => v.toFixed(2)} />
                 <Tooltip formatter={(v: number) => v.toFixed(4)} />
-                <Bar dataKey="score" fill="var(--secondary)" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="score" fill="var(--secondary)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -243,28 +251,48 @@ export default function Results() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-primary">Hasil Perhitungan</h1>
       {loading && <p className="text-muted-foreground">Memuat...</p>}
-      {!loading && sessions.length === 0 && (
-        <p className="text-muted-foreground">Belum ada sesi perhitungan. Buat sesi baru di halaman Perhitungan.</p>
-      )}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {sessions.map((s) => (
-          <Card key={s.sessionId} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <Link to={`/results/${s.sessionId}`} className="font-semibold text-secondary hover:underline dark:text-white">
-                    {s.sessionName}
-                  </Link>
-                  <p className="text-sm text-muted-foreground">{s.candidateCount ?? s.rankings?.length ?? 0} kandidat</p>
+      {!loading && sessions.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <CalculatorIcon />
+                </EmptyMedia>
+                <EmptyTitle>Belum Ada Sesi Perhitungan</EmptyTitle>
+                <EmptyDescription>
+                  Anda belum memiliki sesi perhitungan PSI. Mulai dengan membuat perhitungan baru.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Link to="/calculation">
+                  <Button>Buat Perhitungan Baru</Button>
+                </Link>
+              </EmptyContent>
+            </Empty>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {sessions.map((s) => (
+            <Card key={s.sessionId} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <Link to={`/results/${s.sessionId}`} className="font-semibold text-secondary hover:underline dark:text-white">
+                      {s.sessionName}
+                    </Link>
+                    <p className="text-sm text-muted-foreground">{s.candidateCount ?? s.rankings?.length ?? 0} kandidat</p>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => removeSession(s.sessionId)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => removeSession(s.sessionId)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
