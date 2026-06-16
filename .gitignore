@@ -30,3 +30,10 @@ lerna-debug.log*
 
 nul
 .devdbrc
+
+# Uploaded files
+server/uploads/
+
+# Agent and IDE config
+.agents/
+.opencode/

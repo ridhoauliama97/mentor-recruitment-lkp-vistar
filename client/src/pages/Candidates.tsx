@@ -81,7 +81,12 @@ export default function Candidates() {
     try {
       const fd = new FormData();
       fd.append("photo", file);
-      const res = await window.fetch("/api/upload", { method: "POST", body: fd });
+      const token = localStorage.getItem("auth_token");
+      const res = await window.fetch("/api/upload", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: fd,
+      });
       const data = await res.json();
       if (data.url) setForm({ ...form, photo_url: data.url });
     } catch {
@@ -260,7 +265,7 @@ export default function Candidates() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Foto Profil</label>
+              <label className="block text-sm font-medium mb-1">Pas Foto</label>
               <div className="flex items-center gap-3">
                 {form.photo_url && (
                   <div className="size-14 rounded-full overflow-hidden border shrink-0">

@@ -263,8 +263,8 @@ export default function Calculation() {
                     </div>
                   </PopoverContent>
                 </Popover>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  Nama sesi akan otomatis: <span className="font-medium">{sessionName}</span>
+                <p className="mt-1.5 text-xs text-muted-foreground dark:text-amber-400">
+                  (*) Nama sesi akan terisi secara otomatis secara default berdasarkan tanggal dan jam saat ini.
                 </p>
               </div>
               <div>
@@ -274,7 +274,7 @@ export default function Calculation() {
                   rows={2}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Deskripsi sesi perhitungan"
+                  placeholder="Tambahkan deskripsi atau catatan untuk sesi perhitungan ini (opsional)"
                 />
               </div>
               <div>
