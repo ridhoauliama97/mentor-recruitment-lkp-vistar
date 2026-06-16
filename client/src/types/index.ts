@@ -18,9 +18,8 @@ export interface Candidate {
   email: string;
   phone?: string;
   education?: string;
-  institution?: string;
+  major?: string;
   expertise?: string;
-  bio?: string;
   photoUrl?: string;
   status: "active" | "inactive";
   createdAt: string;

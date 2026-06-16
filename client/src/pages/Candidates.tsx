@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Trash2, FileSpreadsheet } from "@/components/ui/icons";
+import { Plus, Pencil, Trash2, FileSpreadsheet, Upload } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/data-table";
@@ -36,9 +36,11 @@ export default function Candidates() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Candidate | null>(null);
   const [deleting, setDeleting] = useState<Candidate | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
-    name: "", email: "", phone: "", education: "", institution: "", expertise: "", bio: "",
+    name: "", email: "", phone: "", education: "", major: "", expertise: "", photo_url: "",
   });
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetch(); }, [fetch]);
 
@@ -51,7 +53,7 @@ export default function Candidates() {
       }
       setShowForm(false);
       setEditing(null);
-      setForm({ name: "", email: "", phone: "", education: "", institution: "", expertise: "", bio: "" });
+      setForm({ name: "", email: "", phone: "", education: "", major: "", expertise: "", photo_url: "" });
     } catch {
       // error set by store, form stays open
     }
@@ -61,15 +63,32 @@ export default function Candidates() {
     setEditing(c);
     setForm({
       name: c.name, email: c.email, phone: c.phone ?? "", education: c.education ?? "",
-      institution: c.institution ?? "", expertise: c.expertise ?? "", bio: c.bio ?? "",
+      major: c.major ?? "", expertise: c.expertise ?? "", photo_url: c.photoUrl ?? "",
     });
     setShowForm(true);
   };
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", email: "", phone: "", education: "", institution: "", expertise: "", bio: "" });
+    setForm({ name: "", email: "", phone: "", education: "", major: "", expertise: "", photo_url: "" });
     setShowForm(true);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      const res = await window.fetch("/api/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.url) setForm({ ...form, photo_url: data.url });
+    } catch {
+      // silent
+    } finally {
+      setUploading(false);
+    }
   };
 
   const columns: ColumnDef<Candidate>[] = useMemo(() => [
@@ -79,18 +98,37 @@ export default function Candidates() {
       cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.index + 1}</span>,
     },
     {
-      accessorKey: "name",
-      header: "Nama",
-      cell: ({ row }) => (
-        <Link to={`/candidates/${row.original.id}/scores`} className="text-sm font-medium text-secondary dark:text-white hover:underline">
-          {row.original.name}
-        </Link>
-      ),
+      id: "kandidat",
+      header: "Kandidat",
+      cell: ({ row }) => {
+        const c = row.original;
+        return (
+          <Link to={`/candidates/${c.id}/scores`} className="flex items-center gap-3 group">
+            <div className="size-10 shrink-0 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+              {c.photoUrl ? (
+                <img src={c.photoUrl} alt="" className="size-full object-cover" />
+              ) : (
+                <span className="text-xs font-bold text-muted-foreground">{c.name.charAt(0)}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-secondary dark:text-white group-hover:underline truncate">{c.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{c.email}</p>
+              <p className="text-xs text-muted-foreground truncate">{c.phone || "—"}</p>
+            </div>
+          </Link>
+        );
+      },
     },
     {
-      accessorKey: "email",
-      header: "Email",
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.email}</span>,
+      accessorKey: "education",
+      header: "Pendidikan",
+      cell: ({ row }) => <span className="text-sm">{row.original.education || "-"}</span>,
+    },
+    {
+      accessorKey: "major",
+      header: "Jurusan",
+      cell: ({ row }) => <span className="text-sm">{row.original.major || "-"}</span>,
     },
     {
       accessorKey: "expertise",
@@ -190,20 +228,26 @@ export default function Candidates() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Pendidikan Terakhir</label>
-              <input
+              <select
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={form.education}
                 onChange={(e) => setForm({ ...form, education: e.target.value })}
-                placeholder="Contoh: S1 Informatika"
-              />
+              >
+                <option value="">Pilih Pendidikan</option>
+                <option value="SMA">SMA</option>
+                <option value="D3">D3</option>
+                <option value="S1">S1</option>
+                <option value="S2">S2</option>
+                <option value="S3">S3</option>
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Nama Universitas/Institusi</label>
+              <label className="block text-sm font-medium mb-1">Jurusan/Program Studi</label>
               <input
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.institution}
-                onChange={(e) => setForm({ ...form, institution: e.target.value })}
-                placeholder="Contoh: Universitas Indonesia"
+                value={form.major}
+                onChange={(e) => setForm({ ...form, major: e.target.value })}
+                placeholder="Contoh: Ilmu Komputer"
               />
             </div>
             <div>
@@ -216,14 +260,25 @@ export default function Candidates() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Bio</label>
-              <textarea
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                rows={3}
-                value={form.bio}
-                onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                placeholder="Ceritakan tentang diri Anda"
-              />
+              <label className="block text-sm font-medium mb-1">Foto Profil</label>
+              <div className="flex items-center gap-3">
+                {form.photo_url && (
+                  <div className="size-14 rounded-full overflow-hidden border shrink-0">
+                    <img src={form.photo_url} alt="Preview" className="size-full object-cover" />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                  <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()}>
+                    <Upload className="mr-1 h-4 w-4" /> {uploading ? "Mengupload..." : "Pilih Foto"}
+                  </Button>
+                  {form.photo_url && (
+                    <Button type="button" variant="ghost" size="sm" className="ml-2 text-destructive" onClick={() => setForm({ ...form, photo_url: "" })}>
+                      Hapus
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>

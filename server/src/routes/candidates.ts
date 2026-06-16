@@ -3,6 +3,8 @@ import { exec, run, saveDb } from "../db/database.js";
 
 const router = Router();
 
+const validEducation = ["SMA", "D3", "S1", "S2", "S3"];
+
 function sanitize(val: string) {
   return val.replace(/'/g, "''");
 }
@@ -32,16 +34,20 @@ router.get("/:id", (req, res) => {
 });
 
 router.post("/", (req, res) => {
-  const { name, email, phone, education, institution, expertise, bio } = req.body;
+  const { name, email, phone, education, major, expertise, photo_url } = req.body;
   if (!name || !email) {
     res.status(400).json({ message: "Nama dan email wajib diisi" });
     return;
   }
+  if (education && !validEducation.includes(education)) {
+    res.status(400).json({ message: "Pendidikan harus salah satu dari SMA, D3, S1, S2, S3" });
+    return;
+  }
   try {
-    run(`INSERT INTO candidates (name, email, phone, education, institution, expertise, bio) VALUES (
+    run(`INSERT INTO candidates (name, email, phone, education, major, expertise, photo_url) VALUES (
       '${sanitize(name)}', '${sanitize(email)}', '${sanitize(phone ?? "")}',
-      '${sanitize(education ?? "")}', '${sanitize(institution ?? "")}',
-      '${sanitize(expertise ?? "")}', '${sanitize(bio ?? "")}'
+      '${sanitize(education ?? "")}', '${sanitize(major ?? "")}',
+      '${sanitize(expertise ?? "")}', '${sanitize(photo_url ?? "")}'
     )`);
     saveDb();
     const candidates = exec("SELECT * FROM candidates ORDER BY id");
@@ -52,15 +58,19 @@ router.post("/", (req, res) => {
 });
 
 router.put("/:id", (req, res) => {
-  const { name, email, phone, education, institution, expertise, bio, status } = req.body;
+  const { name, email, phone, education, major, expertise, photo_url, status } = req.body;
+  if (education && !validEducation.includes(education)) {
+    res.status(400).json({ message: "Pendidikan harus salah satu dari SMA, D3, S1, S2, S3" });
+    return;
+  }
   const sets: string[] = [];
   if (name !== undefined) sets.push(`name = '${sanitize(name)}'`);
   if (email !== undefined) sets.push(`email = '${sanitize(email)}'`);
   if (phone !== undefined) sets.push(`phone = '${sanitize(phone)}'`);
   if (education !== undefined) sets.push(`education = '${sanitize(education)}'`);
-  if (institution !== undefined) sets.push(`institution = '${sanitize(institution)}'`);
+  if (major !== undefined) sets.push(`major = '${sanitize(major)}'`);
   if (expertise !== undefined) sets.push(`expertise = '${sanitize(expertise)}'`);
-  if (bio !== undefined) sets.push(`bio = '${sanitize(bio)}'`);
+  if (photo_url !== undefined) sets.push(`photo_url = '${sanitize(photo_url)}'`);
   if (status !== undefined) sets.push(`status = '${status}'`);
 
   if (sets.length > 0) {

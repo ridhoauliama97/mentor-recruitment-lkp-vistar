@@ -18,8 +18,10 @@ Hapus file database lalu restart server:
 
 ```sh
 # Dari root proyek
-rm server/data/mentor-psi.db
-pnpm dev
+# 1. Hapus DB
+rm -f data/mentor-psi.db
+# 2. Start server
+pnpm start
 ```
 
 Server akan membuat database baru dari nol dan menjalankan seeder.

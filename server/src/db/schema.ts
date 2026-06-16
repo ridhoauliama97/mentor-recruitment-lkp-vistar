@@ -18,10 +18,9 @@ CREATE TABLE IF NOT EXISTS candidates (
   name TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   phone TEXT,
-  education TEXT,
-  institution TEXT,
+  education TEXT CHECK(education IN ('SMA', 'D3', 'S1', 'S2', 'S3')),
+  major TEXT,
   expertise TEXT,
-  bio TEXT,
   photo_url TEXT,
   status TEXT DEFAULT 'active' CHECK(status IN ('active', 'inactive')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -98,4 +97,5 @@ export function runSchema() {
   try { run("ALTER TABLE criteria ADD COLUMN code TEXT"); } catch {}
   try { run("ALTER TABLE criteria ADD COLUMN weight_ref INTEGER DEFAULT 0"); } catch {}
   try { run("ALTER TABLE criteria ADD COLUMN status TEXT DEFAULT 'active'"); } catch {}
+  try { run("ALTER TABLE candidates ADD COLUMN major TEXT"); } catch {}
 }

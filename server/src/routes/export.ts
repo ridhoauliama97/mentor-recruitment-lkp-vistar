@@ -54,7 +54,7 @@ router.post("/import", (req, res) => {
     }
     if (data.candidates?.length) {
       for (const cand of data.candidates) {
-        run(`INSERT INTO candidates (id, name, email, phone, education, institution, expertise, bio, status) VALUES (${cand.id}, '${(cand.name as string).replace(/'/g, "''")}', '${(cand.email as string).replace(/'/g, "''")}', '${((cand.phone ?? "") as string).replace(/'/g, "''")}', '${((cand.education ?? "") as string).replace(/'/g, "''")}', '${((cand.institution ?? "") as string).replace(/'/g, "''")}', '${((cand.expertise ?? "") as string).replace(/'/g, "''")}', '${((cand.bio ?? "") as string).replace(/'/g, "''")}', '${cand.status ?? "active"}')`);
+        run(`INSERT INTO candidates (id, name, email, phone, education, major, expertise, photo_url, status) VALUES (${cand.id}, '${(cand.name as string).replace(/'/g, "''")}', '${(cand.email as string).replace(/'/g, "''")}', '${((cand.phone ?? "") as string).replace(/'/g, "''")}', '${((cand.education ?? "") as string).replace(/'/g, "''")}', '${((cand.major ?? "") as string).replace(/'/g, "''")}', '${((cand.expertise ?? "") as string).replace(/'/g, "''")}', '${((cand.photo_url ?? "") as string).replace(/'/g, "''")}', '${cand.status ?? "active"}')`);
       }
     }
     if (data.scores?.length) {

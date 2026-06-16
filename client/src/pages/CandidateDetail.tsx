@@ -89,6 +89,14 @@ export default function CandidateDetail() {
 
   const scoreLabel: Record<number, string> = { 5: "Sangat Baik", 4: "Baik", 3: "Cukup", 2: "Kurang", 1: "Sangat Kurang" };
 
+  const weightColors: Record<number, string> = {
+    1: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300",
+    2: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300",
+    3: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/50 dark:text-yellow-300",
+    4: "bg-lime-100 text-lime-700 dark:bg-lime-900/50 dark:text-lime-300",
+    5: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300",
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -142,7 +150,7 @@ export default function CandidateDetail() {
                             />
                             <span className="flex-1 text-sm">{sc.name}</span>
                             <span className="text-xs text-muted-foreground mr-1">{scoreLabel[sc.weight]}</span>
-                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${sel ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${weightColors[sc.weight] ?? "bg-gray-100 text-gray-600"
                               }`}>
                               {sc.weight}
                             </span>

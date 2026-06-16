@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 import { Router } from "express";
 import { initDb } from "./db/database.js";
 import { runSchema } from "./db/schema.js";
@@ -12,12 +14,16 @@ import psiRouter from "./routes/psi.js";
 import dashboardRouter from "./routes/dashboard.js";
 import settingsRouter from "./routes/settings.js";
 import exportRouter from "./routes/export.js";
+import uploadRouter from "./routes/upload.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+app.use("/uploads", express.static(path.resolve(__dirname, "../uploads")));
 
 app.use("/api/auth", authRouter);
 
@@ -34,6 +40,7 @@ apiRouter.use("/psi", psiRouter);
 apiRouter.use("/dashboard", dashboardRouter);
 apiRouter.use("/settings", settingsRouter);
 apiRouter.use("/export", exportRouter);
+apiRouter.use("/upload", uploadRouter);
 app.use("/api", apiRouter);
 
 async function start() {

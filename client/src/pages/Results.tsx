@@ -256,7 +256,7 @@ export default function Results() {
             const weights = r.calculationDetail?.overallPreference ?? [];
 
             const headers = [
-              "Rank", "Nama", "Email", "Phone", "Pendidikan", "Instansi", "Keahlian",
+              "Rank", "Nama", "Email", "Phone", "Pendidikan", "Jurusan", "Keahlian",
               ...(r.calculationDetail?.rawMatrix?.[0] ?? []).map((_, j) => `Kriteria ${j + 1} (raw)`),
               ...(r.calculationDetail?.normalizedMatrix?.[0] ?? []).map((_, j) => `Kriteria ${j + 1} (norm)`),
               "PSI Score",
@@ -273,7 +273,7 @@ export default function Results() {
                 rr.candidate.email,
                 rr.candidate.phone ?? "",
                 `"${rr.candidate.education ?? ""}"`,
-                `"${rr.candidate.institution ?? ""}"`,
+                `"${rr.candidate.major ?? ""}"`,
                 `"${rr.candidate.expertise ?? ""}"`,
                 ...rawRow.map((v) => v.toFixed(4)),
                 ...normRow.map((v) => v.toFixed(4)),
@@ -296,14 +296,14 @@ export default function Results() {
           </Button>
           <Button variant="outline" onClick={() => {
             const wsData = [
-              ["Rank", "Nama", "Email", "Phone", "Pendidikan", "Instansi", "Keahlian", "PSI Score", "Direkomendasikan"],
+              ["Rank", "Nama", "Email", "Phone", "Pendidikan", "Jurusan", "Keahlian", "PSI Score", "Direkomendasikan"],
               ...r.rankings.map((rr) => [
                 rr.rank,
                 rr.candidate.name,
                 rr.candidate.email,
                 rr.candidate.phone ?? "",
                 rr.candidate.education ?? "",
-                rr.candidate.institution ?? "",
+                rr.candidate.major ?? "",
                 rr.candidate.expertise ?? "",
                 Number(rr.psiScore.toFixed(6)),
                 rr.isRecommended ? "Ya" : "Tidak",

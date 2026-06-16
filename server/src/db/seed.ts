@@ -45,27 +45,27 @@ export function seed() {
     (5, 'Sangat Kurang — Tidak menunjukkan komitmen, kurang bertanggung jawab, dan tidak memenuhi standar profesional sebagai coach.', 1, 5)
   `);
 
-  run(`INSERT INTO candidates (name, email, phone, education, institution, expertise, bio) VALUES
-    ('Rizky Pratama', 'rizky@example.com', '081234567890', 'S2 Ilmu Komputer', 'Institut Teknologi Bandung', 'Machine Learning, Deep Learning, MLOps', 'AI Engineer dengan 5+ tahun pengalaman di pengembangan model ML/DL dan deployment.'),
-    ('Siti Nurhaliza', 'siti@example.com', '081234567891', 'S2 Data Science', 'Universitas Gadjah Mada', 'Data Science, Natural Language Processing', 'Data Scientist berpengalaman dengan latar belakang mengajar di bootcamp AI.'),
-    ('Dimas Ardiansyah', 'dimas@example.com', '081234567892', 'S1 Teknik Komputer', 'Universitas Indonesia', 'Computer Vision, Edge AI, Embedded Systems', 'Praktisi computer vision dengan portofolio proyek industri di bidang pengawasan kualitas.'),
-    ('Putri Wulandari', 'putri@example.com', '081234567893', 'S2 Teknik Informatika', 'Universitas Brawijaya', 'NLP, Retrieval-Augmented Generation, Chatbot', 'NLP Engineer dengan pengalaman membangun sistem RAG dan chatbot untuk perusahaan.'),
-    ('Hendra Gunawan', 'hendra@example.com', '081234567894', 'S1 Sistem Informasi', 'Universitas Airlangga', 'Web Development, API, Python, Cloud', 'Full-stack developer yang beralih ke AI, aktif membuat konten edukasi AI.'),
-    ('Ayu Kartika', 'ayu@example.com', '081234567895', 'S3 Kecerdasan Buatan', 'Universitas Diponegoro', 'Reinforcement Learning, AI Ethics, Kurikulum AI', 'Akademisi dan peneliti AI dengan pengalaman mengajar dan menyusun kurikulum AI.'),
-    ('Farhan Maulana', 'farhan@example.com', '081234567896', 'S1 Teknik Informatika', 'Universitas Telkom', 'Backend AI, API Development, Python', 'AI Engineer yang fokus pada pengembangan backend sistem AI dan API deployment.'),
-    ('Dewi Anggraini', 'dewi@example.com', '081234567897', 'S2 Statistika', 'Institut Pertanian Bogor', 'Data Science, Visualisasi Data, Pengajaran', 'Data scientist dengan pengalaman mengajar di berbagai pelatihan data analytics.'),
-    ('Aditya Nugroho', 'aditya@example.com', '081234567898', 'S1 Sistem Informasi', 'Universitas Bina Nusantara', 'Full-stack Development, Python, Cloud AI', 'Full-stack developer yang beralih ke AI, aktif mengembangkan aplikasi AI terintegrasi.'),
-    ('Sarah Fitriani', 'sarah@example.com', '081234567899', 'S2 Ilmu Komputer', 'Universitas Padjadjaran', 'NLP, Text Analytics, Chatbot', 'NLP specialist dengan pengalaman membangun sistem chatbot dan text analytics.'),
-    ('Bima Sakti', 'bima@example.com', '081234567800', 'S1 Teknik Elektro', 'Universitas Hasanuddin', 'Dasar ML, Python, IoT', 'Fresh graduate yang baru memulai perjalanan di bidang AI dan machine learning.'),
-    ('Nindi Lestari', 'nindi@example.com', '081234567801', 'S3 Kecerdasan Buatan', 'Universitas Sebelas Maret', 'Deep Learning, Computer Vision, Akademik', 'Peneliti AI dengan publikasi internasional dan pengalaman mengajar di S1/S2.'),
-    ('Reza Pahlevi', 'reza@example.com', '081234567802', 'S1 Teknik Informatika', 'Universitas Gunadarma', 'Mobile Dev, AI Integration, Python', 'Mobile developer yang beralih ke AI, fokus pada integrasi model AI ke platform mobile.'),
-    ('Citra Maharani', 'citra@example.com', '081234567803', 'S2 Pendidikan Teknologi Informasi', 'Universitas Negeri Malang', 'Kurikulum AI, Instructional Design, Pelatihan', 'Spesialis pengembangan kurikulum dan materi pelatihan AI yang berpengalaman.'),
-    ('Eko Prasetyo', 'eko@example.com', '081234567804', 'S1 Ilmu Komputer', 'Universitas Diponegoro', 'ML Engineering, Model Deployment, MLOps', 'AI Engineer dengan kemampuan teknis kuat namun masih berkembang dalam komunikasi.'),
-    ('Fira Azzahra', 'fira@example.com', '081234567805', 'S2 Linguistik Terapan', 'Universitas Sumatera Utara', 'Komunikasi, Presentasi, Pelatihan NLP', 'Ahli komunikasi dan pelatih dengan spesialisasi pelatihan teknis bidang AI.'),
-    ('Gilang Ramadhan', 'gilang@example.com', '081234567806', 'S1 Pendidikan Matematika', 'Universitas Negeri Yogyakarta', 'Kurikulum, Modul Ajar, Evaluasi Pembelajaran', 'Pengembang kurikulum dan materi ajar AI dengan latar belakang pendidikan.'),
-    ('Hana Safira', 'hana@example.com', '081234567807', 'S2 Ilmu Komputer', 'Universitas Indonesia', 'AI Engineering, NLP, Computer Vision, Pengajaran', 'AI Engineer serba bisa dengan kemampuan teknis unggul dan pengalaman mengajar luas.'),
-    ('Indra Lesmana', 'indra@example.com', '081234567808', 'S1 Manajemen Informatika', 'Universitas Sriwijaya', 'Dasar AI, Python Dasar, SQL', 'Pemula di bidang AI yang memiliki semangat belajar tinggi dan siap dikembangkan.'),
-    ('Joko Susilo', 'joko@example.com', '081234567809', 'S1 Teknik Informatika', 'Universitas Jenderal Soedirman', 'Python, Data Analysis, Dasar ML', 'Kandidat dengan kemampuan rata-rata stabil dan konsisten di semua aspek penilaian.')
+  run(`INSERT INTO candidates (name, email, phone, education, major, expertise) VALUES
+    ('Rizky Pratama', 'rizky@example.com', '081234567890', 'S2', 'Ilmu Komputer', 'Machine Learning, Deep Learning, MLOps'),
+    ('Siti Nurhaliza', 'siti@example.com', '081234567891', 'S2', 'Data Science', 'Data Science, Natural Language Processing'),
+    ('Dimas Ardiansyah', 'dimas@example.com', '081234567892', 'S1', 'Teknik Komputer', 'Computer Vision, Edge AI, Embedded Systems'),
+    ('Putri Wulandari', 'putri@example.com', '081234567893', 'S2', 'Teknik Informatika', 'NLP, Retrieval-Augmented Generation, Chatbot'),
+    ('Hendra Gunawan', 'hendra@example.com', '081234567894', 'S1', 'Sistem Informasi', 'Web Development, API, Python, Cloud'),
+    ('Ayu Kartika', 'ayu@example.com', '081234567895', 'S3', 'Kecerdasan Buatan', 'Reinforcement Learning, AI Ethics, Kurikulum AI'),
+    ('Farhan Maulana', 'farhan@example.com', '081234567896', 'S1', 'Teknik Informatika', 'Backend AI, API Development, Python'),
+    ('Dewi Anggraini', 'dewi@example.com', '081234567897', 'S2', 'Statistika', 'Data Science, Visualisasi Data, Pengajaran'),
+    ('Aditya Nugroho', 'aditya@example.com', '081234567898', 'S1', 'Sistem Informasi', 'Full-stack Development, Python, Cloud AI'),
+    ('Sarah Fitriani', 'sarah@example.com', '081234567899', 'S2', 'Ilmu Komputer', 'NLP, Text Analytics, Chatbot'),
+    ('Bima Sakti', 'bima@example.com', '081234567800', 'S1', 'Teknik Elektro', 'Dasar ML, Python, IoT'),
+    ('Nindi Lestari', 'nindi@example.com', '081234567801', 'S3', 'Kecerdasan Buatan', 'Deep Learning, Computer Vision, Akademik'),
+    ('Reza Pahlevi', 'reza@example.com', '081234567802', 'S1', 'Teknik Informatika', 'Mobile Dev, AI Integration, Python'),
+    ('Citra Maharani', 'citra@example.com', '081234567803', 'S2', 'Teknologi Pendidikan', 'Kurikulum AI, Instructional Design, Pelatihan'),
+    ('Eko Prasetyo', 'eko@example.com', '081234567804', 'S1', 'Ilmu Komputer', 'ML Engineering, Model Deployment, MLOps'),
+    ('Fira Azzahra', 'fira@example.com', '081234567805', 'S2', 'Linguistik', 'Komunikasi, Presentasi, Pelatihan NLP'),
+    ('Gilang Ramadhan', 'gilang@example.com', '081234567806', 'S1', 'Pendidikan Matematika', 'Kurikulum, Modul Ajar, Evaluasi Pembelajaran'),
+    ('Hana Safira', 'hana@example.com', '081234567807', 'S2', 'Ilmu Komputer', 'AI Engineering, NLP, Computer Vision, Pengajaran'),
+    ('Indra Lesmana', 'indra@example.com', '081234567808', 'S1', 'Manajemen Informatika', 'Dasar AI, Python Dasar, SQL'),
+    ('Joko Susilo', 'joko@example.com', '081234567809', 'S1', 'Teknik Informatika', 'Python, Data Analysis, Dasar ML')
   `);
 
   run(`INSERT INTO scores (candidate_id, criteria_id, value, sub_criteria_id) VALUES
