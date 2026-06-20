@@ -361,7 +361,7 @@ children.push(heading1("3. Data Kriteria Penilaian"));
 children.push(para("Terdapat 5 kriteria yang digunakan dalam penilaian calon mentor AI Engineer. Semua kriteria bertipe Benefit (semakin tinggi nilai, semakin baik)."));
 
 children.push(buildSimpleTable(
-  ["Kode", "Nama Kriteria", "Tipe", "Bobot Ref", "Deskripsi"],
+  ["Kode", "Nama Kriteria", "Tipe", "Bobot", "Deskripsi"],
   criteriaData.map(r => r),
   [600, 2200, 700, 700, 4826],
 ));

@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs";
-import { exec, run, saveDb } from "./database.js";
+import { exec, run } from "./database.js";
 
-export function seed() {
-  const existingCount = exec("SELECT COUNT(*) as cnt FROM criteria");
+export async function seed() {
+  const existingCount = await exec("SELECT COUNT(*) as cnt FROM criteria");
   if (existingCount.length > 0 && (existingCount[0] as { cnt: number }).cnt > 0) return;
 
-  run(`INSERT INTO criteria (code, name, description, type, weight_ref, status) VALUES
+  await run(`INSERT INTO criteria (code, name, description, type, weight_ref, status) VALUES
     ('C1', 'Kompetensi Teknis AI Engineer', 'Menjadi aspek utama karena coach AI Engineer harus menguasai kemampuan teknis inti dalam bidang AI.', 'benefit', 30, 'active'),
     ('C2', 'Pengalaman Praktis / Portofolio Proyek AI', 'Pengalaman proyek penting untuk memastikan coach mampu memberikan pembelajaran berbasis praktik nyata.', 'benefit', 25, 'active'),
     ('C3', 'Kemampuan Mengajar dan Komunikasi', 'Coach tidak hanya harus ahli secara teknis, tetapi juga mampu mentransfer pengetahuan kepada peserta.', 'benefit', 20, 'active'),
@@ -13,7 +13,7 @@ export function seed() {
     ('C5', 'Profesionalisme dan Komitmen', 'Menunjukkan kesiapan calon coach dalam menjalankan tugas secara konsisten dan bertanggung jawab.', 'benefit', 10, 'active')
   `);
 
-  run(`INSERT INTO sub_criteria (criteria_id, name, weight, display_order) VALUES
+  await run(`INSERT INTO sub_criteria (criteria_id, name, weight, display_order) VALUES
     (1, 'Sangat Baik — Menguasai konsep dan praktik AI Engineering secara sangat baik, mampu membangun model ML/DL, melakukan evaluasi model, serta memahami deployment AI.', 5, 1),
     (1, 'Baik — Menguasai sebagian besar konsep AI Engineering, mampu membuat model AI dan analisis hasil, tetapi belum terlalu mendalam pada deployment atau optimasi model.', 4, 2),
     (1, 'Cukup — Memahami dasar-dasar AI, machine learning, dan Python, tetapi masih terbatas dalam implementasi proyek AI yang kompleks.', 3, 3),
@@ -45,7 +45,7 @@ export function seed() {
     (5, 'Sangat Kurang — Tidak menunjukkan komitmen, kurang bertanggung jawab, dan tidak memenuhi standar profesional sebagai coach.', 1, 5)
   `);
 
-  run(`INSERT INTO candidates (name, email, phone, education, major, expertise) VALUES
+  await run(`INSERT INTO candidates (name, email, phone, education, major, expertise) VALUES
     ('Rizky Pratama', 'rizky@example.com', '081234567890', 'S2', 'Ilmu Komputer', 'Machine Learning, Deep Learning, MLOps'),
     ('Siti Nurhaliza', 'siti@example.com', '081234567891', 'S2', 'Data Science', 'Data Science, Natural Language Processing'),
     ('Dimas Ardiansyah', 'dimas@example.com', '081234567892', 'S1', 'Teknik Komputer', 'Computer Vision, Edge AI, Embedded Systems'),
@@ -68,7 +68,7 @@ export function seed() {
     ('Joko Susilo', 'joko@example.com', '081234567809', 'S1', 'Teknik Informatika', 'Python, Data Analysis, Dasar ML')
   `);
 
-  run(`INSERT INTO scores (candidate_id, criteria_id, value, sub_criteria_id) VALUES
+  await run(`INSERT INTO scores (candidate_id, criteria_id, value, sub_criteria_id) VALUES
     (1, 1, 5, 1), (1, 2, 4, 7),  (1, 3, 4, 12), (1, 4, 4, 17), (1, 5, 4, 22),
     (2, 1, 4, 2), (2, 2, 3, 8),  (2, 3, 5, 11), (2, 4, 5, 16), (2, 5, 5, 21),
     (3, 1, 5, 1), (3, 2, 5, 6),  (3, 3, 3, 13), (3, 4, 3, 18), (3, 5, 3, 23),
@@ -92,14 +92,11 @@ export function seed() {
   `);
 
   const adminHash = bcrypt.hashSync("password", 10);
-  run(`INSERT OR IGNORE INTO users (username, password_hash) VALUES ('admin', '${adminHash}')`);
-
-  saveDb();
+  await run("INSERT IGNORE INTO users (username, password_hash) VALUES (?, ?)", ["admin", adminHash]);
   console.log("Database seeded successfully");
 }
 
-export function seedSettings() {
-  run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('app_name', 'LKP Academy Vistar')");
-  run("INSERT OR IGNORE INTO app_settings (key, value) VALUES ('institution', 'SPK Rekrutmen Mentor AI Engineer')");
-  saveDb();
+export async function seedSettings() {
+  await run("INSERT IGNORE INTO app_settings (`key`, `value`) VALUES (?, ?)", ["app_name", "LKP Academy Vistar"]);
+  await run("INSERT IGNORE INTO app_settings (`key`, `value`) VALUES (?, ?)", ["institution", "SPK Rekrutmen Mentor AI Engineer"]);
 }

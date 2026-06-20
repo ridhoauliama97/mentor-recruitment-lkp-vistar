@@ -3,10 +3,10 @@ import { exec } from "../db/database.js";
 
 const router = Router();
 
-router.get("/stats", (_req, res) => {
-  const candidateCount = exec("SELECT COUNT(*) as cnt FROM candidates WHERE status = 'active'");
-  const criteriaCount = exec("SELECT COUNT(*) as cnt FROM criteria");
-  const sessionCount = exec("SELECT COUNT(*) as cnt FROM psi_sessions");
+router.get("/stats", async (_req, res) => {
+  const candidateCount = await exec("SELECT COUNT(*) as cnt FROM candidates WHERE status = 'active'");
+  const criteriaCount = await exec("SELECT COUNT(*) as cnt FROM criteria");
+  const sessionCount = await exec("SELECT COUNT(*) as cnt FROM psi_sessions");
 
   res.json({
     totalCandidates: (candidateCount[0] as { cnt: number }).cnt,

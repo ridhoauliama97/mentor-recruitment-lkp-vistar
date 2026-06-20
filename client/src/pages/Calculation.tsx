@@ -506,14 +506,14 @@ export default function Calculation() {
                               <Tooltip key={j}>
                                 <TooltipTrigger asChild>
                                   <td
-                                    className="p-2 text-center font-mono cursor-help"
+                                    className="p-2 text-center font-noto-mono cursor-help"
                                     style={{ backgroundColor: heatColor(val, min, max) }}
                                   >
                                     {val.toFixed(sf.decimals)}
                                   </td>
                                 </TooltipTrigger>
                                 <TooltipContent side="top" className="text-xs">
-                                  <p className="font-mono">{val.toFixed(6)}</p>
+                                  <p className="font-noto-mono">{val.toFixed(6)}</p>
                                 </TooltipContent>
                               </Tooltip>
                             ))}

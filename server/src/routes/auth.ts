@@ -1,6 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { exec, run, saveDb } from "../db/database.js";
+import { exec, run } from "../db/database.js";
 import { signToken, verifyToken } from "../middleware/auth.js";
 
 const router = Router();
@@ -13,7 +13,7 @@ router.post("/login", async (req, res) => {
       return;
     }
 
-    const rows = exec(`SELECT * FROM users WHERE username = '${username.replace(/'/g, "''")}'`);
+    const rows = await exec("SELECT * FROM users WHERE username = ?", [username]);
     if (rows.length === 0) {
       res.status(401).json({ message: "Username atau password salah" });
       return;
@@ -57,7 +57,7 @@ router.put("/password", verifyToken, async (req, res) => {
       return;
     }
 
-    const rows = exec(`SELECT * FROM users WHERE id = ${user.id}`);
+    const rows = await exec("SELECT * FROM users WHERE id = ?", [user.id]);
     if (rows.length === 0) {
       res.status(404).json({ message: "User tidak ditemukan" });
       return;
@@ -71,8 +71,7 @@ router.put("/password", verifyToken, async (req, res) => {
     }
 
     const hash = await bcrypt.hash(newPassword, 10);
-    run(`UPDATE users SET password_hash = '${hash}' WHERE id = ${user.id}`);
-    saveDb();
+    await run("UPDATE users SET password_hash = ? WHERE id = ?", [hash, user.id]);
     res.json({ success: true });
   } catch (err) {
     console.error("Change password error:", err);

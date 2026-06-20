@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { exec, run, saveDb } from "../db/database.js";
+import { exec, run } from "../db/database.js";
 import { calculatePSI } from "../services/psiCalculator.js";
 
 const router = Router();
@@ -17,17 +17,22 @@ router.post("/calculate", async (req, res) => {
       return;
     }
 
-    const criteria = exec(
-      `SELECT * FROM criteria WHERE id IN (${criteriaIds.join(",")}) ORDER BY id`,
+    const placeholders = criteriaIds.map(() => "?").join(",");
+    const criteria = await exec(
+      `SELECT * FROM criteria WHERE id IN (${placeholders}) ORDER BY id`,
+      criteriaIds,
     );
-    const candidates = exec(
-      `SELECT * FROM candidates WHERE id IN (${candidateIds.join(",")}) ORDER BY id`,
+    const candPlaceholders = candidateIds.map(() => "?").join(",");
+    const candidates = await exec(
+      `SELECT * FROM candidates WHERE id IN (${candPlaceholders}) ORDER BY id`,
+      candidateIds,
     );
 
     const matrix: number[][] = [];
     for (const cand of candidates) {
-      const scores = exec(
-        `SELECT criteria_id, value FROM scores WHERE candidate_id = ${(cand as Record<string, unknown>).id}`,
+      const scores = await exec(
+        "SELECT criteria_id, value FROM scores WHERE candidate_id = ?",
+        [(cand as Record<string, unknown>).id],
       );
       const row = criteriaIds.map((cid: number) => {
         const sc = (scores as Record<string, unknown>[]).find(
@@ -49,38 +54,38 @@ router.post("/calculate", async (req, res) => {
       .sort((a, b) => b.score - a.score);
 
     const name = sessionName || `Sesi ${new Date().toLocaleDateString("id-ID")}`;
-    run(`INSERT INTO psi_sessions (session_name, description, status, calculated_at) VALUES (
-      '${name.replace(/'/g, "''")}',
-      '${(description ?? "").replace(/'/g, "''")}',
-      'completed',
-      datetime('now')
-    )`);
-    const sessionRows = exec("SELECT last_insert_rowid() as id");
-    const sessionId = (sessionRows[0] as Record<string, unknown>).id as number;
+    const result = await run(
+      "INSERT INTO psi_sessions (session_name, description, status, calculated_at) VALUES (?, ?, ?, NOW())",
+      [name, description ?? "", "completed"],
+    );
+    const sessionId = result.insertId as number;
 
-    ranked.forEach((r, idx) => {
-      run(`INSERT INTO psi_results (session_id, candidate_id, psi_score, rank, is_recommended) VALUES (
-        ${sessionId}, ${r.candidateId}, ${r.score}, ${idx + 1}, ${idx === 0 ? 1 : 0}
-      )`);
-    });
+    for (let i = 0; i < ranked.length; i++) {
+      const r = ranked[i];
+      await run(
+        "INSERT INTO psi_results (session_id, candidate_id, psi_score, `rank`, is_recommended) VALUES (?, ?, ?, ?, ?)",
+        [sessionId, r.candidateId, r.score, i + 1, i === 0 ? 1 : 0],
+      );
+    }
 
     for (let i = 0; i < matrix.length; i++) {
       for (let j = 0; j < criteriaIds.length; j++) {
-        run(`INSERT INTO psi_details (session_id, candidate_id, criteria_id, raw_value, normalized_value, pv_contribution, dpv_contribution, phi_value, weighted_score) VALUES (
-          ${sessionId},
-          ${(candidates[i] as Record<string, unknown>).id},
-          ${criteriaIds[j]},
-          ${matrix[i][j]},
-          ${detail.normalizedMatrix[i][j]},
-          ${detail.preferenceVariation[j]},
-          ${detail.deviationPreference[j]},
-          ${detail.overallPreference[j]},
-          ${detail.overallPreference[j] * detail.normalizedMatrix[i][j]}
-        )`);
+        await run(
+          `INSERT INTO psi_details (session_id, candidate_id, criteria_id, raw_value, normalized_value, pv_contribution, dpv_contribution, phi_value, weighted_score) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            sessionId,
+            (candidates[i] as Record<string, unknown>).id,
+            criteriaIds[j],
+            matrix[i][j],
+            detail.normalizedMatrix[i][j],
+            detail.preferenceVariation[j],
+            detail.deviationPreference[j],
+            detail.overallPreference[j],
+            detail.overallPreference[j] * detail.normalizedMatrix[i][j],
+          ],
+        );
       }
     }
-
-    saveDb();
 
     const rankings = ranked.map((r, idx) => {
       const cand = candidates.find(
@@ -114,16 +119,17 @@ router.post("/calculate", async (req, res) => {
   }
 });
 
-router.get("/sessions", (_req, res) => {
-  const sessions = exec(
-    `SELECT ps.id as sessionId, ps.session_name as sessionName, ps.description, ps.status, ps.created_at as createdAt, ps.calculated_at as calculatedAt, (SELECT COUNT(*) FROM psi_results WHERE session_id = ps.id) as candidateCount
+router.get("/sessions", async (_req, res) => {
+  const sessions = await exec(
+    `SELECT ps.id as sessionId, ps.session_name as sessionName, ps.description, ps.status, ps.created_at as createdAt, ps.calculated_at as calculatedAt,
+    (SELECT COUNT(*) FROM psi_results WHERE session_id = ps.id) as candidateCount
     FROM psi_sessions ps ORDER BY ps.created_at DESC`,
   );
   res.json(sessions);
 });
 
-router.get("/sessions/latest", (_req, res) => {
-  const sessions = exec(
+router.get("/sessions/latest", async (_req, res) => {
+  const sessions = await exec(
     "SELECT * FROM psi_sessions ORDER BY created_at DESC LIMIT 1",
   );
   if (sessions.length === 0) {
@@ -131,15 +137,17 @@ router.get("/sessions/latest", (_req, res) => {
     return;
   }
   const session = sessions[0] as Record<string, unknown>;
-  const results = exec(
+  const results = await exec(
     `SELECT pr.*, c.* FROM psi_results pr
     JOIN candidates c ON pr.candidate_id = c.id
-    WHERE pr.session_id = ${session.id}
-    ORDER BY pr.rank`,
+    WHERE pr.session_id = ?
+    ORDER BY pr.\`rank\``,
+    [session.id],
   );
-  const criteria = exec("SELECT * FROM criteria ORDER BY id");
-  const details = exec(
-    `SELECT * FROM psi_details WHERE session_id = ${session.id} ORDER BY candidate_id, criteria_id`,
+  const criteria = await exec("SELECT * FROM criteria ORDER BY id");
+  const details = await exec(
+    "SELECT * FROM psi_details WHERE session_id = ? ORDER BY candidate_id, criteria_id",
+    [session.id],
   );
 
   res.json({
@@ -169,9 +177,10 @@ router.get("/sessions/latest", (_req, res) => {
   });
 });
 
-router.get("/sessions/:id", (req, res) => {
-  const sessions = exec(
-    `SELECT * FROM psi_sessions WHERE id = ${req.params.id}`,
+router.get("/sessions/:id", async (req, res) => {
+  const sessions = await exec(
+    "SELECT * FROM psi_sessions WHERE id = ?",
+    [req.params.id],
   );
   if (sessions.length === 0) {
     res.status(404).json({ message: "Sesi tidak ditemukan" });
@@ -179,16 +188,18 @@ router.get("/sessions/:id", (req, res) => {
   }
   const session = sessions[0] as Record<string, unknown>;
 
-  const results = exec(
+  const results = await exec(
     `SELECT pr.*, c.* FROM psi_results pr
     JOIN candidates c ON pr.candidate_id = c.id
-    WHERE pr.session_id = ${session.id}
-    ORDER BY pr.rank`,
+    WHERE pr.session_id = ?
+    ORDER BY pr.\`rank\``,
+    [session.id],
   );
 
-  const criteria = exec("SELECT * FROM criteria ORDER BY id");
-  const details = exec(
-    `SELECT * FROM psi_details WHERE session_id = ${session.id} ORDER BY candidate_id, criteria_id`,
+  const criteria = await exec("SELECT * FROM criteria ORDER BY id");
+  const details = await exec(
+    "SELECT * FROM psi_details WHERE session_id = ? ORDER BY candidate_id, criteria_id",
+    [session.id],
   );
 
   res.json({
@@ -218,10 +229,21 @@ router.get("/sessions/:id", (req, res) => {
   });
 });
 
-router.delete("/sessions/:id", (req, res) => {
-  run(`DELETE FROM psi_sessions WHERE id = ${req.params.id}`);
-  saveDb();
-  res.json({ success: true });
+router.delete("/sessions/:id", async (req, res) => {
+  try {
+    const result = await run("DELETE FROM psi_sessions WHERE id = ?", [req.params.id]);
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "Sesi tidak ditemukan" });
+      return;
+    }
+    res.json({ success: true });
+  } catch (err) {
+    const msg = (err as Error).message.includes("foreign key")
+      ? "Tidak dapat menghapus sesi karena masih ada data terkait"
+      : "Gagal menghapus sesi";
+    console.error("Delete session error:", err);
+    res.status(500).json({ message: msg });
+  }
 });
 
 function extractDetail(

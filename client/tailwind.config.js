@@ -90,6 +90,10 @@ export default {
   			mono: [
   				'JetBrains Mono',
   				'monospace'
+  			],
+  			'noto-mono': [
+  				'"Noto Sans Mono"',
+  				'monospace'
   			]
   		},
   		borderRadius: {

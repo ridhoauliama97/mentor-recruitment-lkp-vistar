@@ -188,7 +188,7 @@ export default function CriteriaPage() {
     },
     {
       id: "weightRef",
-      header: "Bobot Ref",
+      header: "Bobot",
       cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.weightRef != null ? `${row.original.weightRef}%` : "-"}</span>,
     },
     {

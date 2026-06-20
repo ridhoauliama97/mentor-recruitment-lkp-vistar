@@ -124,8 +124,8 @@ export default function CandidateDetail() {
               const scList = subCriteria[c.id] ?? [];
               const isMissing = !scores[c.id] || scores[c.id].value === 0;
               return (
-                <div key={c.id} className={`p-4 rounded-lg border ${isMissing ? "border-red-300 bg-red-50" : "border-border"}`}>
-                  <label className="block text-sm font-medium mb-2">
+                <div key={c.id} className={`p-4 rounded-lg border ${isMissing ? "border-red-300 " : "border-border"}`}>
+                  <label className="block text-sm dark:text-foreground font-medium mb-2">
                     {c.name}
                     <span className="ml-1 text-xs text-muted-foreground">({c.type})</span>
                   </label>
@@ -137,8 +137,8 @@ export default function CandidateDetail() {
                           <label
                             key={sc.id}
                             className={`flex items-center gap-3 px-3 py-2 rounded-md border cursor-pointer transition-colors ${sel
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "bg-card border-border hover:border-primary"
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-card border-border hover:border-primary"
                               }`}
                           >
                             <input

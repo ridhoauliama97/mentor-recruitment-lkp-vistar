@@ -1,9 +1,9 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Router } from "express";
-import { initDb } from "./db/database.js";
 import { runSchema } from "./db/schema.js";
 import { seed, seedSettings } from "./db/seed.js";
 import { verifyToken } from "./middleware/auth.js";
@@ -44,10 +44,9 @@ apiRouter.use("/upload", uploadRouter);
 app.use("/api", apiRouter);
 
 async function start() {
-  await initDb();
-  runSchema();
-  seed();
-  seedSettings();
+  await runSchema();
+  await seed();
+  await seedSettings();
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });

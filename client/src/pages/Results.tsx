@@ -64,7 +64,7 @@ export default function Results() {
             ...prev,
             [s.sessionId]: r.rankings.slice(0, 3).map((rr) => rr.candidate.name),
           }));
-        }).catch(() => {});
+        }).catch(() => { });
       }
     });
   }, [sessions]);
@@ -137,7 +137,7 @@ export default function Results() {
         <div className="flex items-center gap-4">
           <Link to="/results"><Button variant="ghost"><ChevronRight className="h-5 w-5 rotate-180" /></Button></Link>
           <h1 className="text-2xl font-bold text-primary">{r.sessionName}</h1>
-          <Badge>{r.rankings.filter((rr) => rr.isRecommended).length} Direkomendasikan</Badge>
+          {/* <Badge>{r.rankings.filter((rr) => rr.isRecommended).length} Direkomendasikan</Badge> */}
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -208,7 +208,7 @@ export default function Results() {
                           {section.data.map((row, ri) => (
                             <tr key={ri}>
                               {row.map((val: number, ci: number) => (
-                                <td key={ci} className="p-1.5 text-center font-mono" style={{ backgroundColor: getHeatColor(val, mn, mx) }}>
+                                <td key={ci} className="p-1.5 text-center font-noto-mono" style={{ backgroundColor: getHeatColor(val, mn, mx) }}>
                                   {val.toFixed(4)}
                                 </td>
                               ))}
@@ -378,11 +378,10 @@ export default function Results() {
                           <Link key={i} to={`/results/${s.sessionId}`}
                             className="flex items-center gap-2 text-sm hover:bg-muted/50 rounded-md -mx-1 px-1 py-0.5 transition-colors"
                           >
-                            <span className={`inline-flex items-center justify-center size-5 rounded-full text-[10px] font-bold shrink-0 ${
-                              i === 0 ? "bg-yellow-100 text-yellow-700" :
-                              i === 1 ? "bg-gray-100 text-gray-500" :
-                              "bg-orange-100 text-orange-700"
-                            }`}>
+                            <span className={`inline-flex items-center justify-center size-5 rounded-full text-[10px] font-bold shrink-0 ${i === 0 ? "bg-yellow-100 text-yellow-700" :
+                                i === 1 ? "bg-gray-100 text-gray-500" :
+                                  "bg-orange-100 text-orange-700"
+                              }`}>
                               {i + 1}
                             </span>
                             <span className="truncate">{name}</span>
@@ -424,7 +423,7 @@ export default function Results() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-        </>
+      </>
       )}
     </div>
   );
