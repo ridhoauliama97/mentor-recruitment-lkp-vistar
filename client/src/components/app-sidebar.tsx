@@ -5,6 +5,7 @@ import {
   Settings,
   TrophyIcon,
   Users,
+  FolderIcon,
 } from "@/components/ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSettingsStore } from "@/stores/settingsStore";
@@ -14,6 +15,7 @@ import { useCandidateStore } from "@/stores/candidateStore";
 import { usePSIStore } from "@/stores/psiStore";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
+import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -92,6 +94,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         />
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Dokumentasi"
+              onClick={() => window.open("/dokumentasi", "_blank")}
+            >
+              <FolderIcon />
+              <span>Dokumentasi</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+        <Separator className="my-2" />
         <NavUser
           user={{
             name: user?.username ?? "Admin",

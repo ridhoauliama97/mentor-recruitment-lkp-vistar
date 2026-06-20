@@ -9,6 +9,7 @@ import Calculation from "@/pages/Calculation";
 import Results from "@/pages/Results";
 import Settings from "@/pages/Settings";
 import Login from "@/pages/Login";
+import Dokumentasi from "@/pages/Dokumentasi";
 
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,6 +31,7 @@ export default function App() {
       <Route path="/results" element={<ProtectedLayout><Results /></ProtectedLayout>} />
       <Route path="/results/:id" element={<ProtectedLayout><Results /></ProtectedLayout>} />
       <Route path="/settings" element={<ProtectedLayout><Settings /></ProtectedLayout>} />
+      <Route path="/dokumentasi" element={<Dokumentasi />} />
     </Routes>
   );
 }

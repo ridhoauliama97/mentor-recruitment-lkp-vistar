@@ -3,7 +3,6 @@ import {
   MoreVerticalIcon,
   MoonIcon,
   BrightnessDownIcon,
-  Shield,
 } from "@/components/ui/icons";
 import { useTheme } from "next-themes";
 
@@ -50,8 +49,8 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarFallback className="rounded-lg">
-                  <Shield className="size-4" />
+                <AvatarFallback className="rounded-lg text-xs font-medium">
+                  {user.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -72,8 +71,8 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg">
-                    <Shield className="size-4" />
+                  <AvatarFallback className="rounded-lg text-xs font-medium">
+                    {user.name.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
