@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import AuthGuard from "@/components/AuthGuard";
+import Chatbot from "@/components/chatbot";
 import Dashboard from "@/pages/Dashboard";
 import Candidates from "@/pages/Candidates";
 import CandidateDetail from "@/pages/CandidateDetail";
@@ -15,6 +16,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard>
       <Layout>{children}</Layout>
+      <Chatbot />
     </AuthGuard>
   );
 }

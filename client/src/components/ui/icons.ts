@@ -54,6 +54,7 @@ export { default as CalculatorIcon } from "./calculator-icon";
 export { default as CalendarIcon } from "./calendar-icon";
 export { default as BrandReactIcon } from "./brand-react-icon";
 export { default as BrandWindowsIcon } from "./brand-windows-icon";
+export { default as MessageCircleIcon } from "./message-circle-icon";
 export { Spinner } from "./spinner";
 
 import type { ComponentType } from "react";

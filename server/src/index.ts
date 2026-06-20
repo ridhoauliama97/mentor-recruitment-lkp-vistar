@@ -15,6 +15,7 @@ import dashboardRouter from "./routes/dashboard.js";
 import settingsRouter from "./routes/settings.js";
 import exportRouter from "./routes/export.js";
 import uploadRouter from "./routes/upload.js";
+import chatRouter from "./routes/chat.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -41,6 +42,7 @@ apiRouter.use("/dashboard", dashboardRouter);
 apiRouter.use("/settings", settingsRouter);
 apiRouter.use("/export", exportRouter);
 apiRouter.use("/upload", uploadRouter);
+apiRouter.use("/chat", chatRouter);
 app.use("/api", apiRouter);
 
 async function start() {

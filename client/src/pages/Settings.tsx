@@ -15,6 +15,7 @@ export default function Settings() {
   const [importing, setImporting] = useState(false);
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [pwSaving, setPwSaving] = useState(false);
+  const [geminiKey, setGeminiKey] = useState("");
 
   useEffect(() => {
     fetch();
@@ -24,6 +25,12 @@ export default function Settings() {
     if (settings.app_name !== undefined) setAppName(settings.app_name);
     if (settings.institution !== undefined) setInstitution(settings.institution);
   }, [settings]);
+
+  useEffect(() => {
+    api.get<Record<string, string>>("/settings").then((s) => {
+      if (s.gemini_api_key) setGeminiKey(s.gemini_api_key);
+    }).catch(() => {});
+  }, []);
 
   const handleSave = async () => {
     await save({ app_name: appName, institution });
@@ -101,6 +108,40 @@ export default function Settings() {
           <Button onClick={handleSave} disabled={saving}>
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
             {saving ? "Menyimpan..." : "Simpan"}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Konfigurasi AI — Athena</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Gemini API Key</label>
+            <input
+              type="password"
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={geminiKey}
+              onChange={(e) => setGeminiKey(e.target.value)}
+              placeholder="Masukkan Gemini API Key"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Diperlukan untuk chatbot Athena. Dapatkan API key gratis di{" "}
+              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-primary">aistudio.google.com</a>
+            </p>
+          </div>
+          <Button
+            onClick={async () => {
+              try {
+                await api.put("/settings", { gemini_api_key: geminiKey });
+                toast.success("API Key berhasil disimpan");
+              } catch {
+                toast.error("Gagal menyimpan API Key");
+              }
+            }}
+          >
+            Simpan API Key
           </Button>
         </CardContent>
       </Card>
