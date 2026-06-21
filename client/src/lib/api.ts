@@ -54,7 +54,8 @@ export const api = {
     callbacks: {
       onChunk: (text: string) => void;
       onDone: () => void;
-      onError: (msg: string) => void;
+      onError: (msg: string, retryAfter?: number) => void;
+      onSuggestions?: (suggestions: string[]) => void;
     },
     history?: { role: string; text: string }[],
   ): () => void => {
@@ -87,6 +88,7 @@ export const api = {
 
         const decoder = new TextDecoder();
         let buffer = "";
+        let currentEvent = "";
 
         while (true) {
           const { done, value } = await reader.read();
@@ -97,7 +99,10 @@ export const api = {
           buffer = lines.pop() ?? "";
 
           for (const line of lines) {
-            if (line.startsWith("event: ")) continue;
+            if (line.startsWith("event: ")) {
+              currentEvent = line.slice(7).trim();
+              continue;
+            }
             if (!line.startsWith("data: ")) continue;
 
             const jsonStr = line.slice(6).trim();
@@ -105,10 +110,19 @@ export const api = {
 
             try {
               const parsed = JSON.parse(jsonStr) as Record<string, unknown>;
+
+              if (currentEvent === "suggestions" && callbacks.onSuggestions) {
+                const sgs = parsed.suggestions as string[] | undefined;
+                if (Array.isArray(sgs) && sgs.length > 0) {
+                  callbacks.onSuggestions(sgs);
+                }
+                continue;
+              }
+
               if (parsed.text) {
                 callbacks.onChunk(parsed.text as string);
               } else if (parsed.error) {
-                callbacks.onError(parsed.error as string);
+                callbacks.onError(parsed.error as string, parsed.retryAfter as number | undefined);
                 return;
               }
             } catch {
@@ -131,4 +145,6 @@ export const api = {
 
     return () => abortController.abort();
   },
+  getSuggestions: () =>
+    request<{ suggestions: string[] }>("/chat/suggestions"),
 };

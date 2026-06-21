@@ -4,22 +4,30 @@ import { motion } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { MoonIcon, BrightnessDownIcon, BrandReactIcon } from "@/components/ui/icons";
 
+const categories = [
+  { label: "Pendahuluan", key: "pendahuluan" },
+  { label: "Fitur Aplikasi", key: "fitur" },
+  { label: "Metode PSI", key: "metode" },
+  { label: "Teknis", key: "teknis" },
+] as const;
+
 const sections = [
-  { id: "pendahuluan", title: "1. Pendahuluan" },
-  { id: "metadata", title: "2. Metadata" },
-  { id: "struktur", title: "3. Struktur Proyek" },
-  { id: "database", title: "4. Database Schema" },
-  { id: "kriteria", title: "5. Kriteria" },
-  { id: "subkriteria", title: "6. Sub-Kriteria" },
-  { id: "kandidat", title: "7. Kandidat" },
-  { id: "penilaian", title: "8. Sistem Penilaian" },
-  { id: "metode-psi", title: "9. Metode PSI" },
-  { id: "langkah", title: "10. Langkah Perhitungan" },
-  { id: "proses", title: "11. Proses Aplikasi" },
-  { id: "api", title: "12. API Endpoint" },
-  { id: "auth", title: "13. Autentikasi" },
-  { id: "instalasi", title: "14. Instalasi" },
-  { id: "konfigurasi", title: "15. Konfigurasi" },
+  { id: "pendahuluan", title: "1. Pendahuluan", category: "pendahuluan" },
+  { id: "metadata", title: "2. Metadata", category: "pendahuluan" },
+  { id: "struktur", title: "3. Struktur Proyek", category: "pendahuluan" },
+  { id: "instalasi", title: "4. Instalasi", category: "pendahuluan" },
+  { id: "konfigurasi", title: "5. Konfigurasi", category: "pendahuluan" },
+  { id: "kriteria", title: "6. Kriteria", category: "fitur" },
+  { id: "subkriteria", title: "7. Sub-Kriteria", category: "fitur" },
+  { id: "kandidat", title: "8. Kandidat", category: "fitur" },
+  { id: "penilaian", title: "9. Sistem Penilaian", category: "fitur" },
+  { id: "proses", title: "10. Proses Aplikasi", category: "fitur" },
+  { id: "chatbot", title: "11. Chatbot Athena", category: "fitur" },
+  { id: "metode-psi", title: "12. Metode PSI", category: "metode" },
+  { id: "langkah", title: "13. Langkah Perhitungan", category: "metode" },
+  { id: "database", title: "14. Database Schema", category: "teknis" },
+  { id: "api", title: "15. API Endpoint", category: "teknis" },
+  { id: "auth", title: "16. Autentikasi", category: "teknis" },
 ];
 
 const GITHUB_URL = "https://github.com/ridhoauliama97/mentor-recruitment-lkp-vistar";
@@ -83,9 +91,16 @@ export default function Dokumentasi() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setShowBackToTop(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -192,18 +207,29 @@ export default function Dokumentasi() {
               <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Daftar Isi
               </h3>
-              <nav className="space-y-1">
-                {sections.map((s) => (
-                  <SectionLink
-                    key={s.id}
-                    id={s.id}
-                    title={s.title}
-                    active={activeSection === s.id}
-                    onSelect={(id) => {
-                      setActiveSection(id);
-                      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                  />
+              <nav className="space-y-3">
+                {categories.map((cat) => (
+                  <div key={cat.key}>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {cat.label}
+                    </p>
+                    <div className="space-y-0.5 pl-3">
+                      {sections
+                        .filter((s) => s.category === cat.key)
+                        .map((s) => (
+                          <SectionLink
+                            key={s.id}
+                            id={s.id}
+                            title={s.title}
+                            active={activeSection === s.id}
+                            onSelect={(id) => {
+                              setActiveSection(id);
+                              document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }}
+                          />
+                        ))}
+                    </div>
+                  </div>
                 ))}
               </nav>
             </div>
@@ -325,9 +351,473 @@ export default function Dokumentasi() {
                 />
               </section>
 
-              {/* 4. Database Schema */}
+              {/* 4. Instalasi */}
+              <section id="instalasi" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">4. Instalasi</h2>
+                <hr className="my-3" />
+                <h3 className="mt-4 text-lg font-semibold">Prasyarat</h3>
+                <ul className="list-disc space-y-1 pl-6 text-muted-foreground">
+                  <li>Node.js 18+</li>
+                  <li>pnpm 9+</li>
+                  <li>MySQL 8.0 (running)</li>
+                  <li>Git</li>
+                </ul>
+
+                <h3 className="mt-6 text-lg font-semibold">Langkah Instalasi</h3>
+                <CodeBlock
+                  code={`# 1. Clone repositori
+git clone https://github.com/ridhoauliama97/mentor-recruitment-lkp-vistar.git
+cd mentor-recruitment-lkp-vistar
+
+# 2. Install dependensi
+pnpm install
+
+# 3. Setup environment
+cp server/.env.example server/.env
+
+# 4. Edit server/.env (sesuaikan konfigurasi MySQL)
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=password
+DB_NAME=rekrutmen_mentor_psi
+
+# 5. Buat database
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS rekrutmen_mentor_psi"
+
+# 6. Jalankan aplikasi (dev mode) — Terminal 1: Client
+cd client && pnpm dev
+
+# Terminal 2: Server
+cd server && pnpm start
+
+# Atau dari root:
+pnpm dev`}
+                />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Client akan berjalan di {code("http://localhost:5173")} dan server di{" "}
+                  {code("http://localhost:3001")}. Skema dan seed data dibuat otomatis
+                  saat server pertama kali dijalankan.
+                </p>
+
+                <h3 className="mt-6 text-lg font-semibold">Build Produksi</h3>
+                <CodeBlock code="pnpm build" />
+              </section>
+
+              {/* 5. Konfigurasi */}
+              <section id="konfigurasi" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">5. Konfigurasi</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  Konfigurasi aplikasi diatur melalui file {code("server/.env")}:
+                </p>
+                <Table
+                  headers={["Variabel", "Default", "Deskripsi"]}
+                  rows={[
+                    ["DB_HOST", "localhost", "Host MySQL"],
+                    ["DB_PORT", "3306", "Port MySQL"],
+                    ["DB_USER", "root", "User MySQL"],
+                    ["DB_PASSWORD", "password", "Password MySQL"],
+                    ["DB_NAME", "rekrutmen_mentor_psi", "Nama database"],
+                    ["JWT_SECRET", "mentor-psi-secret-key", "Secret key JWT"],
+                    ["PORT", "3001", "Port server Express"],
+                  ]}
+                />
+                <p className="mt-4 text-muted-foreground">
+                  Konfigurasi tambahan (nama aplikasi, institusi) dapat diubah melalui
+                  halaman Pengaturan di aplikasi.
+                </p>
+              </section>
+
+              {/* 6. Kriteria */}
+              <section id="kriteria" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">6. Kriteria</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  Terdapat <strong>5 kriteria</strong> yang digunakan untuk menilai calon mentor.
+                  Semua kriteria bertipe <strong>Benefit</strong> (semakin tinggi nilai semakin baik).
+                </p>
+                <Table
+                  headers={["Kode", "Nama Kriteria", "Bobot Referensi", "Tipe"]}
+                  rows={[
+                    ["C1", "Kompetensi Teknis AI Engineer", "30%", "Benefit"],
+                    ["C2", "Pengalaman Praktis / Portofolio Proyek AI", "25%", "Benefit"],
+                    ["C3", "Kemampuan Mengajar dan Komunikasi", "20%", "Benefit"],
+                    ["C4", "Pemahaman Kurikulum dan Penyusunan Materi", "15%", "Benefit"],
+                    ["C5", "Profesionalisme dan Komitmen", "10%", "Benefit"],
+                  ]}
+                />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Catatan: Bobot referensi hanya untuk display. Perhitungan PSI menggunakan bobot
+                  otomatis ({code("Φ_j")}) yang dihitung dari variasi data.
+                </p>
+              </section>
+
+              {/* 7. Sub-Kriteria */}
+              <section id="subkriteria" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">7. Sub-Kriteria</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  Setiap kriteria memiliki{" "}
+                  <strong>5 level sub-kriteria</strong> (total 25) dengan bobot 1–5 dan skala
+                  label Bahasa Indonesia.
+                </p>
+                <Table
+                  headers={["Kriteria", "Bobot 5", "Bobot 4", "Bobot 3", "Bobot 2", "Bobot 1"]}
+                  rows={[
+                    [
+                      "C1 — Kompetensi Teknis",
+                      "Sangat Baik",
+                      "Baik",
+                      "Cukup",
+                      "Kurang",
+                      "Sangat Kurang",
+                    ],
+                    [
+                      "C2 — Pengalaman Praktis",
+                      "Sangat Baik",
+                      "Baik",
+                      "Cukup",
+                      "Kurang",
+                      "Sangat Kurang",
+                    ],
+                    [
+                      "C3 — Kemampuan Mengajar",
+                      "Sangat Baik",
+                      "Baik",
+                      "Cukup",
+                      "Kurang",
+                      "Sangat Kurang",
+                    ],
+                    [
+                      "C4 — Pemahaman Kurikulum",
+                      "Sangat Baik",
+                      "Baik",
+                      "Cukup",
+                      "Kurang",
+                      "Sangat Kurang",
+                    ],
+                    [
+                      "C5 — Profesionalisme",
+                      "Sangat Baik",
+                      "Baik",
+                      "Cukup",
+                      "Kurang",
+                      "Sangat Kurang",
+                    ],
+                  ]}
+                />
+              </section>
+
+              {/* 8. Kandidat */}
+              <section id="kandidat" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">8. Kandidat</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  Seed data mencakup <strong>20 kandidat</strong> dengan latar belakang pendidikan
+                  dan keahlian yang beragam.
+                </p>
+                <Table
+                  headers={["No", "Nama", "Pendidikan", "Jurusan", "Keahlian"]}
+                  rows={[
+                    ["1", "Rizky Pratama", "S2", "Ilmu Komputer", "ML, Deep Learning, MLOps"],
+                    ["2", "Siti Nurhaliza", "S2", "Data Science", "Data Science, NLP"],
+                    ["3", "Dimas Ardiansyah", "S1", "Teknik Komputer", "Computer Vision, Edge AI"],
+                    ["4", "Putri Wulandari", "S2", "Teknik Informatika", "NLP, RAG, Chatbot"],
+                    ["5", "Hendra Gunawan", "S1", "Sistem Informasi", "Web Dev, API, Python, Cloud"],
+                    ["6", "Ayu Kartika", "S3", "Kecerdasan Buatan", "RL, AI Ethics, Kurikulum AI"],
+                    ["7", "Farhan Maulana", "S1", "Teknik Informatika", "Backend AI, API, Python"],
+                    ["8", "Dewi Anggraini", "S2", "Statistika", "Data Science, Visualisasi"],
+                    ["9", "Aditya Nugroho", "S1", "Sistem Informasi", "Full-stack, Python, Cloud AI"],
+                    ["10", "Sarah Fitriani", "S2", "Ilmu Komputer", "NLP, Text Analytics, Chatbot"],
+                    ["11", "Bima Sakti", "S1", "Teknik Elektro", "Dasar ML, Python, IoT"],
+                    ["12", "Nindi Lestari", "S3", "Kecerdasan Buatan", "Deep Learning, CV, Akademik"],
+                    ["13", "Reza Pahlevi", "S1", "Teknik Informatika", "Mobile Dev, AI, Python"],
+                    ["14", "Citra Maharani", "S2", "Teknologi Pendidikan", "Kurikulum AI, Instructional Design"],
+                    ["15", "Eko Prasetyo", "S1", "Ilmu Komputer", "ML Engineering, MLOps"],
+                    ["16", "Fira Azzahra", "S2", "Linguistik", "Komunikasi, Presentasi, NLP"],
+                    ["17", "Gilang Ramadhan", "S1", "Pendidikan Matematika", "Kurikulum, Modul Ajar"],
+                    ["18", "Hana Safira", "S2", "Ilmu Komputer", "AI Engineering, NLP, CV"],
+                    ["19", "Indra Lesmana", "S1", "Manajemen Informatika", "Dasar AI, Python Dasar, SQL"],
+                    ["20", "Joko Susilo", "S1", "Teknik Informatika", "Python, Data Analysis, ML"],
+                  ]}
+                />
+              </section>
+
+              {/* 9. Sistem Penilaian */}
+              <section id="penilaian" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">9. Sistem Penilaian</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  Penilaian kandidat menggunakan skala integer <strong>1–5</strong> yang
+                  direferensikan ke sub-kriteria.
+                </p>
+                <Table
+                  headers={["Nilai", "Label"]}
+                  rows={[
+                    ["5", "Sangat Baik"],
+                    ["4", "Baik"],
+                    ["3", "Cukup"],
+                    ["2", "Kurang"],
+                    ["1", "Sangat Kurang"],
+                  ]}
+                />
+                <p className="mt-3 leading-relaxed text-muted-foreground">
+                  Validasi nilai 1–5 dilakukan di sisi server. Format angka menggunakan{" "}
+                  {code("toLocaleString('id-ID')")} untuk Rupiah, 4 desimal untuk display,
+                  dan 6+ desimal untuk perhitungan internal.
+                </p>
+              </section>
+
+              {/* 10. Proses Aplikasi */}
+              <section id="proses" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">10. Proses Aplikasi</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  Alur penggunaan aplikasi secara umum:
+                </p>
+                <ol className="mt-4 space-y-3 text-muted-foreground">
+                  <li className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      1
+                    </span>
+                    <span>
+                      <strong>Login</strong> — Administrator login menggunakan username dan password.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      2
+                    </span>
+                    <span>
+                      <strong>Kelola Kriteria</strong> — Mengatur 5 kriteria dan sub-kriteria
+                      penilaian (jika diperlukan).
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      3
+                    </span>
+                    <span>
+                      <strong>Input Data Kandidat</strong> — Menambahkan data kandidat dan
+                      memberikan nilai skor 1–5 untuk setiap kriteria.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      4
+                    </span>
+                    <span>
+                      <strong>Kalkulasi PSI</strong> — Membuat sesi baru dan menjalankan
+                      perhitungan PSI. Hasil disimpan secara immutable.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      5
+                    </span>
+                    <span>
+                      <strong>Lihat Hasil</strong> — Menampilkan peringkat, skor, dan detail
+                      perhitungan dalam bentuk heatmap.
+                    </span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                      6
+                    </span>
+                    <span>
+                      <strong>Export Laporan</strong> — Mengekspor hasil ke PDF, CSV, atau Excel.
+                    </span>
+                  </li>
+                </ol>
+              </section>
+
+              {/* 11. Chatbot Athena */}
+              <section id="chatbot" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">11. Chatbot Athena</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  <strong>Athena — Asisten Supervisor Akademi</strong> adalah asisten AI berbasis{" "}
+                  <strong>Google Gemini Flash</strong> (model <code>gemini-flash-latest</code>)
+                  yang membantu pengguna menjawab pertanyaan seputar aplikasi, metode PSI,
+                  data kandidat, dan sesi perhitungan secara real-time.
+                </p>
+
+                <h3 className="mt-6 text-lg font-semibold">Akses</h3>
+                <ul className="mt-2 list-disc space-y-1.5 pl-6 text-muted-foreground">
+                  <li>Klik ikon chat <strong>pojok kanan bawah</strong> pada halaman yang sudah login.</li>
+                  <li>Shortcut keyboard: <strong>Ctrl+M</strong> (buka) / <strong>Escape</strong> (tutup).</li>
+                  <li>Tombol <strong>Enter</strong> untuk kirim pesan.</li>
+                </ul>
+
+                <h3 className="mt-6 text-lg font-semibold">Konfigurasi</h3>
+                <p className="leading-relaxed text-muted-foreground">
+                  API Key dikonfigurasi di halaman <strong>Pengaturan → Konfigurasi AI — Athena</strong>.
+                  Masukkan Gemini API Key (disimpan di tabel <code>app_settings</code>, input
+                  bertipe password), lalu klik "Simpan API Key". Dapatkan API key gratis di{" "}
+                  <a
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-primary underline underline-offset-4 hover:text-primary/80"
+                  >
+                    aistudio.google.com
+                  </a>.
+                </p>
+
+                <h3 className="mt-6 text-lg font-semibold">Fitur</h3>
+                <ul className="mt-2 list-disc space-y-1.5 pl-6 text-muted-foreground">
+                  <li><strong>Streaming response</strong> — teks muncul token per token via SSE (Server-Sent Events).</li>
+                  <li><strong>Format Markdown</strong> — tebal, miring, inline code, paragraf, tabel, list (ordered & unordered).</li>
+                  <li><strong>Saran pertanyaan lanjutan</strong> (suggestion chips) di bawah setiap balasan asisten.</li>
+                  <li><strong>Riwayat chat</strong> tersimpan otomatis di <code>localStorage</code> (key <code>athena_chat_history</code>).</li>
+                  <li><strong>Knowledge base</strong> — 20+ entri mencakup seluruh fitur, menu, data sesi, dan metode PSI dengan TF-IDF retrieval.</li>
+                  <li><strong>Data dinamis</strong> — statistik langsung dari database (jumlah kandidat aktif, sesi tersimpan, top-3 ranking per sesi) di-refresh setiap 5 menit.</li>
+                  <li><strong>Retry & cooldown</strong> — tombol "Coba Lagi" muncul saat error, cooldown 3 detik antar pengiriman untuk mencegah spam.</li>
+                  <li><strong>Rate-limit handling</strong> — saat kuota Google habis (<code>RESOURCE_EXHAUSTED</code>), countdown mundur sesuai <code>retry-after</code> dari server.</li>
+                  <li><strong>Abort on close</strong> — stream dibatalkan otomatis saat chatbot ditutup.</li>
+                </ul>
+
+                <h3 className="mt-6 text-lg font-semibold">Saran Pertanyaan Awal</h3>
+                <p className="leading-relaxed text-muted-foreground">
+                  Saat pertama membuka chatbot, tiga saran pertanyaan ditampilkan:
+                </p>
+                <ul className="mt-2 list-disc space-y-1.5 pl-6 text-muted-foreground">
+                  <li>"Apa saja fitur yang tersedia di aplikasi ini?"</li>
+                  <li>"Bagaimana cara melakukan perhitungan PSI?"</li>
+                  <li>"Siapa saja kandidat mentor yang tersedia?"</li>
+                </ul>
+
+                <h3 className="mt-6 text-lg font-semibold">Batasan</h3>
+                <ul className="mt-2 list-disc space-y-1.5 pl-6 text-muted-foreground">
+                  <li>Membutuhkan koneksi internet untuk menghubungi API Gemini.</li>
+                  <li>Membutuhkan Gemini API key yang valid (disimpan di database).</li>
+                  <li>Jika kuota habis (<code>RESOURCE_EXHAUSTED</code>), tampil countdown mundur sesuai <code>retry-after</code> dari Google.</li>
+                  <li>Hasil PSI bersifat <strong>immutable</strong> — chatbot hanya membaca data sesi, tidak bisa mengubah atau menghapus.</li>
+                  <li>Chatbot tidak bisa menjalankan perhitungan PSI baru — hanya memandu pengguna ke menu <strong>Proses PSI</strong>.</li>
+                </ul>
+
+                <h3 className="mt-6 text-lg font-semibold">Endpoint API</h3>
+                <Table
+                  headers={["Method", "Endpoint", "Deskripsi"]}
+                  rows={[
+                    ["POST", "/api/chat/stream", "Streaming chat via SSE (event: chunk/done/error/suggestions)"],
+                    ["POST", "/api/chat", "Non-streaming chat (JSON response)"],
+                    ["GET", "/api/chat/suggestions", "Dapatkan saran pertanyaan awal"],
+                  ]}
+                />
+              </section>
+
+              {/* 12. Metode PSI */}
+              <section id="metode-psi" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">12. Metode PSI</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  <strong>Preference Selection Index (PSI)</strong> adalah metode MADM yang
+                  menghitung bobot kriteria secara otomatis dari variasi data. Berikut langkah-langkahnya:
+                </p>
+
+                <h3 className="mt-6 text-lg font-semibold">Langkah 1: Normalisasi</h3>
+                <p className="text-muted-foreground">Untuk kriteria Benefit:</p>
+                <CodeBlock code="r_ij = x_ij / max(x_j)" />
+                <p className="text-muted-foreground">Untuk kriteria Cost:</p>
+                <CodeBlock code="r_ij = min(x_j) / x_ij" />
+
+                <h3 className="mt-6 text-lg font-semibold">Langkah 2: Mean Value</h3>
+                <CodeBlock code="R̄_j = (1/n) × Σ r_ij   (i = 1..n)" />
+
+                <h3 className="mt-6 text-lg font-semibold">Langkah 3: Preference Variation (PV)</h3>
+                <CodeBlock code="PV_j = Σ (r_ij - R̄_j)²   (i = 1..n)" />
+
+                <h3 className="mt-6 text-lg font-semibold">Langkah 4: Deviation (DPV)</h3>
+                <CodeBlock code="DPV_j = 1 - PV_j" />
+                <p className="text-sm text-muted-foreground">
+                  Edge case: Jika semua nilai identik (PV=0), maka DPV=1 untuk semua kriteria.
+                </p>
+
+                <h3 className="mt-6 text-lg font-semibold">Langkah 5: Overall Preference (Φ)</h3>
+                <CodeBlock code="Φ_j = DPV_j / Σ DPV_j" />
+                <p className="text-sm text-muted-foreground">
+                  Edge case: Jika ΣDPV=0, semua Φ_j dibagi rata.
+                </p>
+
+                <h3 className="mt-6 text-lg font-semibold">Langkah 6: PSI Score</h3>
+                <CodeBlock code="PSI_i = Σ (Φ_j × r_ij)   (j = 1..m)" />
+
+                <h3 className="mt-6 text-lg font-semibold">Langkah 7: Ranking</h3>
+                <p className="text-muted-foreground">
+                  Kandidat dengan <strong>PSI Score tertinggi</strong> mendapatkan peringkat 1
+                  (paling direkomendasikan).
+                </p>
+              </section>
+
+              {/* 13. Langkah Perhitungan */}
+              <section id="langkah" className="mb-12 scroll-mt-20">
+                <h2 className="text-2xl font-semibold tracking-tight">13. Langkah Perhitungan</h2>
+                <hr className="my-3" />
+                <p className="leading-relaxed text-muted-foreground">
+                  Berikut ilustrasi perhitungan PSI untuk 3 kandidat dengan 3 kriteria:
+                </p>
+
+                <h3 className="mt-6 text-lg font-semibold">Decision Matrix (X)</h3>
+                <Table
+                  headers={["Kandidat", "C1 (Benefit)", "C2 (Benefit)", "C3 (Benefit)"]}
+                  rows={[
+                    ["A1", "4", "5", "3"],
+                    ["A2", "3", "4", "5"],
+                    ["A3", "5", "3", "4"],
+                  ]}
+                />
+
+                <h3 className="mt-6 text-lg font-semibold">Normalized Matrix (R)</h3>
+                <p className="text-sm text-muted-foreground">
+                  C1: max=5, C2: max=5, C3: max=5
+                </p>
+                <Table
+                  headers={["Kandidat", "C1", "C2", "C3"]}
+                  rows={[
+                    ["A1", "0.8000", "1.0000", "0.6000"],
+                    ["A2", "0.6000", "0.8000", "1.0000"],
+                    ["A3", "1.0000", "0.6000", "0.8000"],
+                  ]}
+                />
+
+                <h3 className="mt-6 text-lg font-semibold">Mean (R̄)</h3>
+                <CodeBlock code="C1: (0.8 + 0.6 + 1.0) / 3 = 0.8000
+C2: (1.0 + 0.8 + 0.6) / 3 = 0.8000
+C3: (0.6 + 1.0 + 0.8) / 3 = 0.8000" />
+
+                <h3 className="mt-6 text-lg font-semibold">Preference Variation (PV)</h3>
+                <CodeBlock code="PV_C1 = (0.8-0.8)² + (0.6-0.8)² + (1.0-0.8)² = 0 + 0.04 + 0.04 = 0.0800
+PV_C2 = (1.0-0.8)² + (0.8-0.8)² + (0.6-0.8)² = 0.04 + 0 + 0.04 = 0.0800
+PV_C3 = (0.6-0.8)² + (1.0-0.8)² + (0.8-0.8)² = 0.04 + 0.04 + 0 = 0.0800" />
+
+                <h3 className="mt-6 text-lg font-semibold">Deviation (DPV)</h3>
+                <CodeBlock code="DPV_C1 = 1 - 0.08 = 0.9200
+DPV_C2 = 1 - 0.08 = 0.9200
+DPV_C3 = 1 - 0.08 = 0.9200" />
+
+                <h3 className="mt-6 text-lg font-semibold">Overall Preference (Φ)</h3>
+                <CodeBlock code="ΣDPV = 0.92 + 0.92 + 0.92 = 2.76
+Φ_C1 = 0.92 / 2.76 = 0.3333
+Φ_C2 = 0.92 / 2.76 = 0.3333
+Φ_C3 = 0.92 / 2.76 = 0.3333" />
+
+                <h3 className="mt-6 text-lg font-semibold">PSI Score</h3>
+                <CodeBlock code="PSI_A1 = (0.3333×0.8) + (0.3333×1.0) + (0.3333×0.6) = 0.8000
+PSI_A2 = (0.3333×0.6) + (0.3333×0.8) + (0.3333×1.0) = 0.8000
+PSI_A3 = (0.3333×1.0) + (0.3333×0.6) + (0.3333×0.8) = 0.8000" />
+
+                <h3 className="mt-6 text-lg font-semibold">Ranking</h3>
+                <p className="text-muted-foreground">
+                  Karena semua skor identik (variasi data rendah), semua kandidat mendapatkan skor
+                  yang sama dan peringkat dibagi rata.
+                </p>
+              </section>
+
+              {/* 14. Database Schema */}
               <section id="database" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">4. Database Schema</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">14. Database Schema</h2>
                 <hr className="my-3" />
                 <p className="leading-relaxed text-muted-foreground">
                   Database MySQL 8.0 ({code("rekrutmen_mentor_psi")}) terdiri dari{" "}
@@ -476,319 +966,9 @@ export default function Dokumentasi() {
                 />
               </section>
 
-              {/* 5. Kriteria */}
-              <section id="kriteria" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">5. Kriteria</h2>
-                <hr className="my-3" />
-                <p className="leading-relaxed text-muted-foreground">
-                  Terdapat <strong>5 kriteria</strong> yang digunakan untuk menilai calon mentor.
-                  Semua kriteria bertipe <strong>Benefit</strong> (semakin tinggi nilai semakin baik).
-                </p>
-                <Table
-                  headers={["Kode", "Nama Kriteria", "Bobot Referensi", "Tipe"]}
-                  rows={[
-                    ["C1", "Kompetensi Teknis AI Engineer", "30%", "Benefit"],
-                    ["C2", "Pengalaman Praktis / Portofolio Proyek AI", "25%", "Benefit"],
-                    ["C3", "Kemampuan Mengajar dan Komunikasi", "20%", "Benefit"],
-                    ["C4", "Pemahaman Kurikulum dan Penyusunan Materi", "15%", "Benefit"],
-                    ["C5", "Profesionalisme dan Komitmen", "10%", "Benefit"],
-                  ]}
-                />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Catatan: Bobot referensi hanya untuk display. Perhitungan PSI menggunakan bobot
-                  otomatis ({code("Φ_j")}) yang dihitung dari variasi data.
-                </p>
-              </section>
-
-              {/* 6. Sub-Kriteria */}
-              <section id="subkriteria" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">6. Sub-Kriteria</h2>
-                <hr className="my-3" />
-                <p className="leading-relaxed text-muted-foreground">
-                  Setiap kriteria memiliki{" "}
-                  <strong>5 level sub-kriteria</strong> (total 25) dengan bobot 1–5 dan skala
-                  label Bahasa Indonesia.
-                </p>
-                <Table
-                  headers={["Kriteria", "Bobot 5", "Bobot 4", "Bobot 3", "Bobot 2", "Bobot 1"]}
-                  rows={[
-                    [
-                      "C1 — Kompetensi Teknis",
-                      "Sangat Baik",
-                      "Baik",
-                      "Cukup",
-                      "Kurang",
-                      "Sangat Kurang",
-                    ],
-                    [
-                      "C2 — Pengalaman Praktis",
-                      "Sangat Baik",
-                      "Baik",
-                      "Cukup",
-                      "Kurang",
-                      "Sangat Kurang",
-                    ],
-                    [
-                      "C3 — Kemampuan Mengajar",
-                      "Sangat Baik",
-                      "Baik",
-                      "Cukup",
-                      "Kurang",
-                      "Sangat Kurang",
-                    ],
-                    [
-                      "C4 — Pemahaman Kurikulum",
-                      "Sangat Baik",
-                      "Baik",
-                      "Cukup",
-                      "Kurang",
-                      "Sangat Kurang",
-                    ],
-                    [
-                      "C5 — Profesionalisme",
-                      "Sangat Baik",
-                      "Baik",
-                      "Cukup",
-                      "Kurang",
-                      "Sangat Kurang",
-                    ],
-                  ]}
-                />
-              </section>
-
-              {/* 7. Kandidat */}
-              <section id="kandidat" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">7. Kandidat</h2>
-                <hr className="my-3" />
-                <p className="leading-relaxed text-muted-foreground">
-                  Seed data mencakup <strong>20 kandidat</strong> dengan latar belakang pendidikan
-                  dan keahlian yang beragam.
-                </p>
-                <Table
-                  headers={["No", "Nama", "Pendidikan", "Jurusan", "Keahlian"]}
-                  rows={[
-                    ["1", "Rizky Pratama", "S2", "Ilmu Komputer", "ML, Deep Learning, MLOps"],
-                    ["2", "Siti Nurhaliza", "S2", "Data Science", "Data Science, NLP"],
-                    ["3", "Dimas Ardiansyah", "S1", "Teknik Komputer", "Computer Vision, Edge AI"],
-                    ["4", "Putri Wulandari", "S2", "Teknik Informatika", "NLP, RAG, Chatbot"],
-                    ["5", "Hendra Gunawan", "S1", "Sistem Informasi", "Web Dev, API, Python, Cloud"],
-                    ["6", "Ayu Kartika", "S3", "Kecerdasan Buatan", "RL, AI Ethics, Kurikulum AI"],
-                    ["7", "Farhan Maulana", "S1", "Teknik Informatika", "Backend AI, API, Python"],
-                    ["8", "Dewi Anggraini", "S2", "Statistika", "Data Science, Visualisasi"],
-                    ["9", "Aditya Nugroho", "S1", "Sistem Informasi", "Full-stack, Python, Cloud AI"],
-                    ["10", "Sarah Fitriani", "S2", "Ilmu Komputer", "NLP, Text Analytics, Chatbot"],
-                    ["11", "Bima Sakti", "S1", "Teknik Elektro", "Dasar ML, Python, IoT"],
-                    ["12", "Nindi Lestari", "S3", "Kecerdasan Buatan", "Deep Learning, CV, Akademik"],
-                    ["13", "Reza Pahlevi", "S1", "Teknik Informatika", "Mobile Dev, AI, Python"],
-                    ["14", "Citra Maharani", "S2", "Teknologi Pendidikan", "Kurikulum AI, Instructional Design"],
-                    ["15", "Eko Prasetyo", "S1", "Ilmu Komputer", "ML Engineering, MLOps"],
-                    ["16", "Fira Azzahra", "S2", "Linguistik", "Komunikasi, Presentasi, NLP"],
-                    ["17", "Gilang Ramadhan", "S1", "Pendidikan Matematika", "Kurikulum, Modul Ajar"],
-                    ["18", "Hana Safira", "S2", "Ilmu Komputer", "AI Engineering, NLP, CV"],
-                    ["19", "Indra Lesmana", "S1", "Manajemen Informatika", "Dasar AI, Python Dasar, SQL"],
-                    ["20", "Joko Susilo", "S1", "Teknik Informatika", "Python, Data Analysis, ML"],
-                  ]}
-                />
-              </section>
-
-              {/* 8. Sistem Penilaian */}
-              <section id="penilaian" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">8. Sistem Penilaian</h2>
-                <hr className="my-3" />
-                <p className="leading-relaxed text-muted-foreground">
-                  Penilaian kandidat menggunakan skala integer <strong>1–5</strong> yang
-                  direferensikan ke sub-kriteria.
-                </p>
-                <Table
-                  headers={["Nilai", "Label"]}
-                  rows={[
-                    ["5", "Sangat Baik"],
-                    ["4", "Baik"],
-                    ["3", "Cukup"],
-                    ["2", "Kurang"],
-                    ["1", "Sangat Kurang"],
-                  ]}
-                />
-                <p className="mt-3 leading-relaxed text-muted-foreground">
-                  Validasi nilai 1–5 dilakukan di sisi server. Format angka menggunakan{" "}
-                  {code("toLocaleString('id-ID')")} untuk Rupiah, 4 desimal untuk display,
-                  dan 6+ desimal untuk perhitungan internal.
-                </p>
-              </section>
-
-              {/* 9. Metode PSI */}
-              <section id="metode-psi" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">9. Metode PSI</h2>
-                <hr className="my-3" />
-                <p className="leading-relaxed text-muted-foreground">
-                  <strong>Preference Selection Index (PSI)</strong> adalah metode MADM yang
-                  menghitung bobot kriteria secara otomatis dari variasi data. Berikut langkah-langkahnya:
-                </p>
-
-                <h3 className="mt-6 text-lg font-semibold">Langkah 1: Normalisasi</h3>
-                <p className="text-muted-foreground">Untuk kriteria Benefit:</p>
-                <CodeBlock code="r_ij = x_ij / max(x_j)" />
-                <p className="text-muted-foreground">Untuk kriteria Cost:</p>
-                <CodeBlock code="r_ij = min(x_j) / x_ij" />
-
-                <h3 className="mt-6 text-lg font-semibold">Langkah 2: Mean Value</h3>
-                <CodeBlock code="R̄_j = (1/n) × Σ r_ij   (i = 1..n)" />
-
-                <h3 className="mt-6 text-lg font-semibold">Langkah 3: Preference Variation (PV)</h3>
-                <CodeBlock code="PV_j = Σ (r_ij - R̄_j)²   (i = 1..n)" />
-
-                <h3 className="mt-6 text-lg font-semibold">Langkah 4: Deviation (DPV)</h3>
-                <CodeBlock code="DPV_j = 1 - PV_j" />
-                <p className="text-sm text-muted-foreground">
-                  Edge case: Jika semua nilai identik (PV=0), maka DPV=1 untuk semua kriteria.
-                </p>
-
-                <h3 className="mt-6 text-lg font-semibold">Langkah 5: Overall Preference (Φ)</h3>
-                <CodeBlock code="Φ_j = DPV_j / Σ DPV_j" />
-                <p className="text-sm text-muted-foreground">
-                  Edge case: Jika ΣDPV=0, semua Φ_j dibagi rata.
-                </p>
-
-                <h3 className="mt-6 text-lg font-semibold">Langkah 6: PSI Score</h3>
-                <CodeBlock code="PSI_i = Σ (Φ_j × r_ij)   (j = 1..m)" />
-
-                <h3 className="mt-6 text-lg font-semibold">Langkah 7: Ranking</h3>
-                <p className="text-muted-foreground">
-                  Kandidat dengan <strong>PSI Score tertinggi</strong> mendapatkan peringkat 1
-                  (paling direkomendasikan).
-                </p>
-              </section>
-
-              {/* 10. Langkah Perhitungan */}
-              <section id="langkah" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">10. Langkah Perhitungan</h2>
-                <hr className="my-3" />
-                <p className="leading-relaxed text-muted-foreground">
-                  Berikut ilustrasi perhitungan PSI untuk 3 kandidat dengan 3 kriteria:
-                </p>
-
-                <h3 className="mt-6 text-lg font-semibold">Decision Matrix (X)</h3>
-                <Table
-                  headers={["Kandidat", "C1 (Benefit)", "C2 (Benefit)", "C3 (Benefit)"]}
-                  rows={[
-                    ["A1", "4", "5", "3"],
-                    ["A2", "3", "4", "5"],
-                    ["A3", "5", "3", "4"],
-                  ]}
-                />
-
-                <h3 className="mt-6 text-lg font-semibold">Normalized Matrix (R)</h3>
-                <p className="text-sm text-muted-foreground">
-                  C1: max=5, C2: max=5, C3: max=5
-                </p>
-                <Table
-                  headers={["Kandidat", "C1", "C2", "C3"]}
-                  rows={[
-                    ["A1", "0.8000", "1.0000", "0.6000"],
-                    ["A2", "0.6000", "0.8000", "1.0000"],
-                    ["A3", "1.0000", "0.6000", "0.8000"],
-                  ]}
-                />
-
-                <h3 className="mt-6 text-lg font-semibold">Mean (R̄)</h3>
-                <CodeBlock code="C1: (0.8 + 0.6 + 1.0) / 3 = 0.8000
-C2: (1.0 + 0.8 + 0.6) / 3 = 0.8000
-C3: (0.6 + 1.0 + 0.8) / 3 = 0.8000" />
-
-                <h3 className="mt-6 text-lg font-semibold">Preference Variation (PV)</h3>
-                <CodeBlock code="PV_C1 = (0.8-0.8)² + (0.6-0.8)² + (1.0-0.8)² = 0 + 0.04 + 0.04 = 0.0800
-PV_C2 = (1.0-0.8)² + (0.8-0.8)² + (0.6-0.8)² = 0.04 + 0 + 0.04 = 0.0800
-PV_C3 = (0.6-0.8)² + (1.0-0.8)² + (0.8-0.8)² = 0.04 + 0.04 + 0 = 0.0800" />
-
-                <h3 className="mt-6 text-lg font-semibold">Deviation (DPV)</h3>
-                <CodeBlock code="DPV_C1 = 1 - 0.08 = 0.9200
-DPV_C2 = 1 - 0.08 = 0.9200
-DPV_C3 = 1 - 0.08 = 0.9200" />
-
-                <h3 className="mt-6 text-lg font-semibold">Overall Preference (Φ)</h3>
-                <CodeBlock code="ΣDPV = 0.92 + 0.92 + 0.92 = 2.76
-Φ_C1 = 0.92 / 2.76 = 0.3333
-Φ_C2 = 0.92 / 2.76 = 0.3333
-Φ_C3 = 0.92 / 2.76 = 0.3333" />
-
-                <h3 className="mt-6 text-lg font-semibold">PSI Score</h3>
-                <CodeBlock code="PSI_A1 = (0.3333×0.8) + (0.3333×1.0) + (0.3333×0.6) = 0.8000
-PSI_A2 = (0.3333×0.6) + (0.3333×0.8) + (0.3333×1.0) = 0.8000
-PSI_A3 = (0.3333×1.0) + (0.3333×0.6) + (0.3333×0.8) = 0.8000" />
-
-                <h3 className="mt-6 text-lg font-semibold">Ranking</h3>
-                <p className="text-muted-foreground">
-                  Karena semua skor identik (variasi data rendah), semua kandidat mendapatkan skor
-                  yang sama dan peringkat dibagi rata.
-                </p>
-              </section>
-
-              {/* 11. Proses Aplikasi */}
-              <section id="proses" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">11. Proses Aplikasi</h2>
-                <hr className="my-3" />
-                <p className="leading-relaxed text-muted-foreground">
-                  Alur penggunaan aplikasi secara umum:
-                </p>
-                <ol className="mt-4 space-y-3 text-muted-foreground">
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                      1
-                    </span>
-                    <span>
-                      <strong>Login</strong> — Administrator login menggunakan username dan password.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                      2
-                    </span>
-                    <span>
-                      <strong>Kelola Kriteria</strong> — Mengatur 5 kriteria dan sub-kriteria
-                      penilaian (jika diperlukan).
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                      3
-                    </span>
-                    <span>
-                      <strong>Input Data Kandidat</strong> — Menambahkan data kandidat dan
-                      memberikan nilai skor 1–5 untuk setiap kriteria.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                      4
-                    </span>
-                    <span>
-                      <strong>Kalkulasi PSI</strong> — Membuat sesi baru dan menjalankan
-                      perhitungan PSI. Hasil disimpan secara immutable.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                      5
-                    </span>
-                    <span>
-                      <strong>Lihat Hasil</strong> — Menampilkan peringkat, skor, dan detail
-                      perhitungan dalam bentuk heatmap.
-                    </span>
-                  </li>
-                  <li className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                      6
-                    </span>
-                    <span>
-                      <strong>Export Laporan</strong> — Mengekspor hasil ke PDF, CSV, atau Excel.
-                    </span>
-                  </li>
-                </ol>
-              </section>
-
-              {/* 12. API Endpoint */}
+              {/* 15. API Endpoint */}
               <section id="api" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">12. API Endpoint</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">15. API Endpoint</h2>
                 <hr className="my-3" />
                 <p className="leading-relaxed text-muted-foreground">
                   Server Express berjalan di port 3001. Client Vite mem-proxy /api/* ke server.
@@ -884,9 +1064,9 @@ PSI_A3 = (0.3333×1.0) + (0.3333×0.6) + (0.3333×0.8) = 0.8000" />
                 />
               </section>
 
-              {/* 13. Autentikasi */}
+              {/* 16. Autentikasi */}
               <section id="auth" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">13. Autentikasi</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">16. Autentikasi</h2>
                 <hr className="my-3" />
                 <p className="leading-relaxed text-muted-foreground">
                   Autentikasi menggunakan <strong>JSON Web Token (JWT)</strong> dengan
@@ -918,84 +1098,6 @@ PSI_A3 = (0.3333×1.0) + (0.3333×0.6) + (0.3333×0.8) = 0.8000" />
                     {code("password")} (bcrypt hashed).
                   </li>
                 </ul>
-              </section>
-
-              {/* 14. Instalasi */}
-              <section id="instalasi" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">14. Instalasi</h2>
-                <hr className="my-3" />
-                <h3 className="mt-4 text-lg font-semibold">Prasyarat</h3>
-                <ul className="list-disc space-y-1 pl-6 text-muted-foreground">
-                  <li>Node.js 18+</li>
-                  <li>pnpm 9+</li>
-                  <li>MySQL 8.0 (running)</li>
-                  <li>Git</li>
-                </ul>
-
-                <h3 className="mt-6 text-lg font-semibold">Langkah Instalasi</h3>
-                <CodeBlock
-                  code={`# 1. Clone repositori
-git clone https://github.com/ridhoauliama97/mentor-recruitment-lkp-vistar.git
-cd mentor-recruitment-lkp-vistar
-
-# 2. Install dependensi
-pnpm install
-
-# 3. Setup environment
-cp server/.env.example server/.env
-
-# 4. Edit server/.env (sesuaikan konfigurasi MySQL)
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=password
-DB_NAME=rekrutmen_mentor_psi
-
-# 5. Buat database
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS rekrutmen_mentor_psi"
-
-# 6. Jalankan aplikasi (dev mode) — Terminal 1: Client
-cd client && pnpm dev
-
-# Terminal 2: Server
-cd server && pnpm start
-
-# Atau dari root:
-pnpm dev`}
-                />
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Client akan berjalan di {code("http://localhost:5173")} dan server di{" "}
-                  {code("http://localhost:3001")}. Skema dan seed data dibuat otomatis
-                  saat server pertama kali dijalankan.
-                </p>
-
-                <h3 className="mt-6 text-lg font-semibold">Build Produksi</h3>
-                <CodeBlock code="pnpm build" />
-              </section>
-
-              {/* 15. Konfigurasi */}
-              <section id="konfigurasi" className="mb-12 scroll-mt-20">
-                <h2 className="text-2xl font-semibold tracking-tight">15. Konfigurasi</h2>
-                <hr className="my-3" />
-                <p className="leading-relaxed text-muted-foreground">
-                  Konfigurasi aplikasi diatur melalui file {code("server/.env")}:
-                </p>
-                <Table
-                  headers={["Variabel", "Default", "Deskripsi"]}
-                  rows={[
-                    ["DB_HOST", "localhost", "Host MySQL"],
-                    ["DB_PORT", "3306", "Port MySQL"],
-                    ["DB_USER", "root", "User MySQL"],
-                    ["DB_PASSWORD", "password", "Password MySQL"],
-                    ["DB_NAME", "rekrutmen_mentor_psi", "Nama database"],
-                    ["JWT_SECRET", "mentor-psi-secret-key", "Secret key JWT"],
-                    ["PORT", "3001", "Port server Express"],
-                  ]}
-                />
-                <p className="mt-4 text-muted-foreground">
-                  Konfigurasi tambahan (nama aplikasi, institusi) dapat diubah melalui
-                  halaman Pengaturan di aplikasi.
-                </p>
               </section>
 
               <div className="border-t pt-6 text-center text-sm text-muted-foreground">
@@ -1066,6 +1168,22 @@ pnpm dev`}
             </div>
           </motion.div>
         </div>
+      )}
+
+      {showBackToTop && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.15 }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Kembali ke atas"
+          className="fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-colors hover:bg-primary/90"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+          </svg>
+        </motion.button>
       )}
     </div>
   );

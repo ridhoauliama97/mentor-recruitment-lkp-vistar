@@ -1,45 +1,10 @@
 import { Router } from "express";
 import { exec } from "../db/database.js";
+import { buildSystemPrompt } from "../services/knowledgeBase.js";
+import { getDynamicContext } from "../services/dynamicData.js";
+import { getFirstOpenSuggestions } from "../services/suggestionEngine.js";
 
 const router = Router();
-
-const SYSTEM_PROMPT = `Anda adalah Athena, Asisten Supervisor Akademi untuk aplikasi SPK Rekrutmen Mentor AI Engineer milik LKP Academy Vistar.
-
-Gunakan Bahasa Indonesia yang natural, ramah, dan profesional. Jawab dengan jelas dan ringkas.
-
-⚠️ BATASAN KEAMANAN YANG HARUS DIPATUHI:
-1. JANGAN PERNAH menyebutkan, membagikan, atau memberikan hint tentang API key, token, password, atau kredensial apapun.
-2. JANGAN PERNAH menyebutkan isi file .env, struktur database, atau konfigurasi server.
-3. JANGAN PERNAH menyebutkan username atau password default (admin/password).
-4. JANGAN PERNAH memberikan instruksi untuk mengakses server, database, atau file system.
-5. JANGAN PERNAH menyarankan modifikasi kode atau konfigurasi yang berbahaya.
-6. Jika pengguna meminta informasi yang melanggar batasan di atas, tolak dengan sopan dan arahkan ke dokumentasi resmi aplikasi.
-
-📋 KONTEKS APLIKASI:
-- Nama: SPK Rekrutmen Mentor AI Engineer
-- Domain: LKP Academy Vistar
-- Metode: Preference Selection Index (PSI) — metode MADM yang menghitung bobot kriteria secara otomatis dari variasi data
-- Semua kriteria bertipe Benefit (semakin tinggi nilai semakin baik)
-- Skala penilaian: 1=Sangat Kurang, 2=Kurang, 3=Cukup, 4=Baik, 5=Sangat Baik
-- 5 Kriteria: C1 Kompetensi Teknis AI Engineer (30%), C2 Pengalaman Praktis (25%), C3 Kemampuan Mengajar (20%), C4 Pemahaman Kurikulum (15%), C5 Profesionalisme (10%)
-
-📚 METODE PSI (6 langkah):
-1. Normalisasi Benefit: r_ij = x_ij / max(x_j)
-2. Mean: R̄_j = (1/n) × Σ r_ij
-3. Preference Variation: PV_j = Σ (r_ij - R̄_j)²
-4. Deviation: DPV_j = 1 - PV_j (edge: PV=0 → DPV=1)
-5. Overall Preference: Φ_j = DPV_j / Σ DPV_j (edge: ΣDPV=0 → Φ_j dibagi rata)
-6. PSI Score: PSI_i = Σ (Φ_j × r_ij)
-Ranking: skor tertinggi = peringkat 1
-
-❓ FAQ:
-- PSI adalah metode yang menghitung bobot otomatis dari variasi data.
-- Semua kriteria Benefit, skala 1-5.
-- Hasil PSI immutable, buat sesi baru untuk kalkulasi ulang.
-- Export tersedia dalam format PDF, CSV, dan Excel.
-- Dokumentasi lengkap ada di menu Dokumentasi (buka tab baru).
-
-Jangan memberikan instruksi reset password. Jika ditanya cara reset password, arahkan ke menu Pengaturan.`;
 
 function buildContents(history: { role: string; text: string }[] | undefined, message: string) {
   const contents: { role: string; parts: { text: string }[] }[] = [];
@@ -56,6 +21,20 @@ function buildContents(history: { role: string; text: string }[] | undefined, me
   return contents;
 }
 
+async function getApiKey(): Promise<string> {
+  const rows = await exec<{ value: string }>(
+    "SELECT `value` FROM app_settings WHERE `key` = 'gemini_api_key'",
+  );
+  if (rows.length === 0 || !rows[0].value) {
+    throw new Error("NO_KEY");
+  }
+  return rows[0].value;
+}
+
+router.get("/suggestions", async (_req, res) => {
+  res.json(getFirstOpenSuggestions());
+});
+
 router.post("/stream", async (req, res) => {
   const { message, history } = req.body;
 
@@ -66,20 +45,23 @@ router.post("/stream", async (req, res) => {
 
   let apiKey: string;
   try {
-    const rows = await exec<{ value: string }>(
-      "SELECT `value` FROM app_settings WHERE `key` = 'gemini_api_key'",
-    );
-    if (rows.length === 0 || !rows[0].value) {
-      res.status(400).json({ error: "NO_KEY: API key belum dikonfigurasi" });
-      return;
-    }
-    apiKey = rows[0].value;
+    apiKey = await getApiKey();
   } catch {
-    res.status(500).json({ error: "Gagal membaca konfigurasi" });
+    res.status(400).json({ error: "NO_KEY: API key belum dikonfigurasi" });
     return;
   }
 
   const contents = buildContents(history, message);
+
+  const [systemPrompt, dynamicContext] = await Promise.all([
+    Promise.resolve().then(() => buildSystemPrompt(message, "")),
+    getDynamicContext(),
+  ]);
+
+  const finalSystemPrompt = systemPrompt.replace(
+    "— DATA SISTEM TERKINI —\n\n",
+    `— DATA SISTEM TERKINI —\n\n${dynamicContext}\n\n`,
+  );
 
   const abortController = new AbortController();
   req.on("close", () => abortController.abort());
@@ -97,9 +79,9 @@ router.post("/stream", async (req, res) => {
         headers: { "Content-Type": "application/json" },
         signal: abortController.signal,
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          systemInstruction: { parts: [{ text: finalSystemPrompt }] },
           contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1000 },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
         }),
       },
     );
@@ -108,10 +90,16 @@ router.post("/stream", async (req, res) => {
       const errBody = await geminiRes.json().catch(() => ({})) as Record<string, unknown>;
       console.error("Gemini API stream error:", errBody);
       const status = (errBody.error as Record<string, unknown> | undefined)?.status as string | undefined;
+      const errMsg = (errBody.error as Record<string, unknown> | undefined)?.message as string | undefined;
       let msg = "Gagal terhubung ke layanan AI";
+      let retryAfter: number | undefined;
       if (status === "UNAVAILABLE") msg = "Layanan AI sedang sibuk. Coba lagi nanti.";
-      else if (status === "RESOURCE_EXHAUSTED") msg = "Terlalu banyak permintaan. Tunggu sebentar.";
-      res.write(`event: error\ndata: ${JSON.stringify({ error: msg })}\n\n`);
+      else if (status === "RESOURCE_EXHAUSTED") {
+        const retryMatch = errMsg?.match(/retry in ([\d.]+)s/);
+        retryAfter = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) : 30;
+        msg = `Terlalu banyak permintaan. Coba lagi dalam ${retryAfter} detik.`;
+      }
+      res.write(`event: error\ndata: ${JSON.stringify({ error: msg, retryAfter })}\n\n`);
       res.end();
       return;
     }
@@ -125,6 +113,7 @@ router.post("/stream", async (req, res) => {
 
     const decoder = new TextDecoder();
     let buffer = "";
+    let fullReply = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -146,6 +135,7 @@ router.post("/stream", async (req, res) => {
           const parts = content?.parts as Array<Record<string, unknown>> | undefined;
           const text = parts?.[0]?.text as string | undefined;
           if (text) {
+            fullReply += text;
             res.write(`event: chunk\ndata: ${JSON.stringify({ text })}\n\n`);
           }
         } catch {
@@ -155,6 +145,19 @@ router.post("/stream", async (req, res) => {
     }
 
     res.write(`event: done\ndata: {}\n\n`);
+
+    const suggestionMatch = fullReply.match(/<!--SUGGESTIONS-->(.*)/s);
+    if (suggestionMatch) {
+      try {
+        const sgs = JSON.parse(suggestionMatch[1].trim());
+        if (Array.isArray(sgs) && sgs.length > 0) {
+          res.write(`event: suggestions\ndata: ${JSON.stringify({ suggestions: sgs.slice(0, 3) })}\n\n`);
+        }
+      } catch {
+        // suggestions parse failed; skip
+      }
+    }
+
     res.end();
   } catch (err) {
     if ((err as Error).name === "AbortError") {
@@ -177,16 +180,17 @@ router.post("/", async (req, res) => {
       return;
     }
 
-    const rows = await exec<{ value: string }>(
-      "SELECT `value` FROM app_settings WHERE `key` = 'gemini_api_key'",
+    const [apiKey, systemPrompt, dynamicContext] = await Promise.all([
+      getApiKey(),
+      Promise.resolve().then(() => buildSystemPrompt(message, "")),
+      getDynamicContext(),
+    ]);
+
+    const finalSystemPrompt = systemPrompt.replace(
+      "— DATA SISTEM TERKINI —\n\n",
+      `— DATA SISTEM TERKINI —\n\n${dynamicContext}\n\n`,
     );
 
-    if (rows.length === 0 || !rows[0].value) {
-      res.status(400).json({ error: "NO_KEY: API key belum dikonfigurasi" });
-      return;
-    }
-
-    const apiKey = rows[0].value;
     const contents = buildContents(history, message);
 
     const response = await fetch(
@@ -195,9 +199,9 @@ router.post("/", async (req, res) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          systemInstruction: { parts: [{ text: finalSystemPrompt }] },
           contents,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1000 },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
         }),
       },
     );
@@ -217,6 +221,10 @@ router.post("/", async (req, res) => {
 
     res.json({ reply: reply ?? "Maaf, terjadi kesalahan." });
   } catch (err) {
+    if ((err as Error).message === "NO_KEY") {
+      res.status(400).json({ error: "NO_KEY: API key belum dikonfigurasi" });
+      return;
+    }
     console.error("Chat error:", err);
     res.status(500).json({ error: "Terjadi kesalahan server" });
   }

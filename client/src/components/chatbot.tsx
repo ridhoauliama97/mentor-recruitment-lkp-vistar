@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { MessageCircleIcon, X } from "@/components/ui/icons";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import ChatMarkdown from "@/components/chat-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -25,7 +26,7 @@ function ChatBubble({ role, text, isError }: Message) {
               : "bg-muted text-foreground rounded-bl-sm"
         }`}
       >
-        {text}
+        {isUser ? text : <ChatMarkdown text={text} />}
       </div>
     </div>
   );
@@ -48,11 +49,15 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [retryCountdown, setRetryCountdown] = useState(0);
+  const [cooldown, setCooldown] = useState(false);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const throttleRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<(() => void) | null>(null);
   const retryTextRef = useRef<string>("");
-  const historyRef = useRef<Message[]>([]);
 
   useEffect(() => {
     try {
@@ -72,18 +77,18 @@ export default function Chatbot() {
   useEffect(() => {
     if (!isOpen) return;
     setTimeout(() => inputRef.current?.focus(), 100);
+    api.getSuggestions().then((r) => setSuggestions(r.suggestions)).catch(() => {});
   }, [isOpen]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streaming]);
+  }, [messages, streaming, suggestions]);
 
   useEffect(() => {
     try {
       const clean = messages
         .filter((m) => !m.isError)
         .map((m) => ({ role: m.role, text: m.text }));
-      historyRef.current = clean as Message[];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
     } catch {}
   }, [messages]);
@@ -103,33 +108,108 @@ export default function Chatbot() {
   }, [isOpen]);
 
   useEffect(() => {
+    return () => {
+      clearInterval(countdownRef.current);
+      clearTimeout(throttleRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!isOpen) {
       abortRef.current?.();
       abortRef.current = null;
     }
   }, [isOpen]);
 
-  const sendMessage = useCallback((textOverride?: string) => {
-    const text = textOverride ?? input.trim();
-    if (!text || streaming) return;
+  useEffect(() => {
+    if (retryCountdown <= 0) {
+      clearInterval(countdownRef.current);
+      return;
+    }
+    countdownRef.current = setInterval(() => {
+      setRetryCountdown((c) => c - 1);
+    }, 1000);
+    return () => clearInterval(countdownRef.current);
+  }, [retryCountdown]);
+
+  const sendMessage = useCallback((text?: string) => {
+    const msg = text ?? input.trim();
+    if (!msg || streaming || cooldown) return;
 
     abortRef.current?.();
     abortRef.current = null;
 
-    if (!textOverride) setInput("");
-    retryTextRef.current = text;
+    setInput("");
+    setCooldown(true);
+    clearTimeout(throttleRef.current);
+    throttleRef.current = setTimeout(() => setCooldown(false), 3000);
+    retryTextRef.current = msg;
+    setSuggestions([]);
 
-    const userMsg: Message = { role: "user", text };
+    setMessages((prev) => [...prev, { role: "user", text: msg }, { role: "assistant", text: "" }]);
+    setStreaming(true);
 
-    if (textOverride) {
-      setMessages((prev) => {
-        const next = prev.slice(0, -1);
-        return [...next, { role: "assistant", text: "" }];
-      });
-    } else {
-      setMessages((prev) => [...prev, userMsg, { role: "assistant", text: "" }]);
-    }
+    const abort = api.chatStream(
+      msg,
+      {
+        onChunk: (chunk) => {
+          setMessages((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            if (last && last.role === "assistant" && !last.isError) {
+              next[next.length - 1] = { ...last, text: last.text + chunk };
+            }
+            return next;
+          });
+        },
+        onDone: () => {
+          setStreaming(false);
+        },
+        onError: (msg, retryAfter) => {
+          setStreaming(false);
+          setSuggestions([]);
+          if (retryAfter && retryAfter > 0) setRetryCountdown(retryAfter);
+          setMessages((prev) => {
+            const next = [...prev];
+            next[next.length - 1] = { role: "assistant", text: msg, isError: true };
+            return next;
+          });
+        },
+        onSuggestions: (sgs) => {
+          setSuggestions(sgs);
+          setMessages((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            if (last?.role === "assistant" && !last.isError) {
+              next[next.length - 1] = { ...last, text: last.text.replace(/<!--SUGGESTIONS-->.*$/s, "") };
+            }
+            return next;
+          });
+        },
+      },
+      historyRef.current,
+    );
 
+    abortRef.current = abort;
+  }, [input, streaming]);
+
+  const retryMessage = useCallback(() => {
+    const text = retryTextRef.current;
+    if (!text || streaming || cooldown) return;
+
+    abortRef.current?.();
+    abortRef.current = null;
+
+    setSuggestions([]);
+    setRetryCountdown(0);
+    setCooldown(true);
+    clearTimeout(throttleRef.current);
+    throttleRef.current = setTimeout(() => setCooldown(false), 3000);
+
+    setMessages((prev) => {
+      const next = prev.slice(0, -1);
+      return [...next, { role: "assistant", text: "" }];
+    });
     setStreaming(true);
 
     const abort = api.chatStream(
@@ -148,11 +228,24 @@ export default function Chatbot() {
         onDone: () => {
           setStreaming(false);
         },
-        onError: (msg) => {
+        onError: (msg, retryAfter) => {
           setStreaming(false);
+          setSuggestions([]);
+          if (retryAfter && retryAfter > 0) setRetryCountdown(retryAfter);
           setMessages((prev) => {
             const next = [...prev];
             next[next.length - 1] = { role: "assistant", text: msg, isError: true };
+            return next;
+          });
+        },
+        onSuggestions: (sgs) => {
+          setSuggestions(sgs);
+          setMessages((prev) => {
+            const next = [...prev];
+            const last = next[next.length - 1];
+            if (last?.role === "assistant" && !last.isError) {
+              next[next.length - 1] = { ...last, text: last.text.replace(/<!--SUGGESTIONS-->.*$/s, "") };
+            }
             return next;
           });
         },
@@ -161,7 +254,17 @@ export default function Chatbot() {
     );
 
     abortRef.current = abort;
-  }, [input, streaming]);
+  }, [streaming]);
+
+  const historyRef = useRef<Message[]>([]);
+  useEffect(() => {
+    try {
+      const clean = messages
+        .filter((m) => !m.isError)
+        .map((m) => ({ role: m.role, text: m.text }));
+      historyRef.current = clean as Message[];
+    } catch {}
+  }, [messages]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -196,16 +299,35 @@ export default function Chatbot() {
                 <ChatBubble key={i} role={m.role} text={m.text} isError={m.isError} />
               ))}
               {streaming && <TypingIndicator />}
+              {!streaming && suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {suggestions.map((s, i) => (
+                    <button
+                      key={i}
+                      onClick={() => sendMessage(s)}
+                      className="rounded-full border px-3 py-1.5 text-xs cursor-pointer transition-colors hover:border-primary hover:bg-muted"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
               {!streaming && messages.length > 0 && messages[messages.length - 1].isError && (
                 <div className="flex justify-start">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => sendMessage(retryTextRef.current)}
-                    className="text-xs"
-                  >
-                    Coba Lagi
-                  </Button>
+                  {retryCountdown > 0 ? (
+                    <span className="rounded-full border px-3 py-1.5 text-xs text-muted-foreground">
+                      Coba lagi dalam {retryCountdown}s
+                    </span>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={retryMessage}
+                      className="text-xs"
+                    >
+                      Coba Lagi
+                    </Button>
+                  )}
                 </div>
               )}
               <div ref={bottomRef} />
@@ -220,9 +342,9 @@ export default function Chatbot() {
                 onKeyDown={handleKeyDown}
                 placeholder="Tulis pesan..."
                 className="h-9 flex-1 rounded-md border bg-muted px-3 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                disabled={streaming}
+                disabled={streaming || cooldown}
               />
-              <Button size="icon" className="h-9 w-9 shrink-0" onClick={() => sendMessage()} disabled={streaming || !input.trim()}>
+              <Button size="icon" className="h-9 w-9 shrink-0" onClick={() => sendMessage()} disabled={streaming || cooldown || !input.trim()}>
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
