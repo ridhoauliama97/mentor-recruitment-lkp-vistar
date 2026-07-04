@@ -4,6 +4,7 @@ import { ArrowRight, CalculatorIcon, Download, FileText, FileSpreadsheet, Trash2
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Empty,
   EmptyContent,
@@ -231,7 +232,14 @@ export default function Results() {
             onClick={async () => {
               setPdfLoading(true);
               try {
-                const blob = await pdf(<PSIPDF result={r} exportedAt={new Date()} username={username} appName={appName} />).toBlob();
+                const logoResp = await fetch("/images/logo/logo.png");
+                const logoBlob = await logoResp.blob();
+                const logoSrc = await new Promise<string>((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.readAsDataURL(logoBlob);
+                });
+                const blob = await pdf(<PSIPDF result={r} exportedAt={new Date()} username={username} appName={appName} logoSrc={logoSrc} />).toBlob();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
@@ -364,9 +372,16 @@ export default function Results() {
                       <span>{s.candidateCount ?? s.rankings?.length ?? 0} kandidat</span>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setDeletingId(s.sessionId)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:bg-destructive hover:text-destructive-foreground dark:hover:bg-accent dark:hover:text-accent-foreground" onClick={() => setDeletingId(s.sessionId)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Hapus</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 {previews[s.sessionId] && (

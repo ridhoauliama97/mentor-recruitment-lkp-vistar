@@ -1,70 +1,102 @@
 # AGENTS.md — SPK Rekrutmen Mentor AI Engineer (PSI)
 
+## Purpose for AI coding agents
+
+This file is the repo-specific guide for AI coding agents working on `mentor-recruitment`. Use it to understand the architecture, key decisions, and high-risk areas before editing code.
+
+- Focus on the `client/` React frontend and `server/` Express backend as two separate packages in a `pnpm` workspace.
+- Preserve the PSI algorithm parity between frontend and backend.
+- Prefer links to documentation instead of duplicating detailed setup steps.
+- Use `pnpm typecheck` as the primary validation check; there is no dedicated test framework installed yet.
+
 ## What this repo is
 
-A full-stack Coach AI Engineer assessment app using the PSI (Preference Selection Index) decision-making method. Domain: **LKP Academy Vistar — SPK Rekrutmen Mentor AI Engineer**.
+A full-stack assessment app for mentor recruitment using the Preference Selection Index (PSI) decision-making method.
 
 ## Architecture
 
 ```
-mentor-psi/
+mentor-recruitment/
 ├── client/              # Vite + React 19 + TypeScript
 │   └── src/
-│       ├── components/
-│       │   ├── ui/      # shadcn/ui primitives (Button, Card, Badge, Progress)
-│       │   └── layout/  # Sidebar, Layout
-│       ├── pages/       # Dashboard, Criteria, Candidates, CandidateDetail, Calculation, Results, Settings
-│       ├── lib/         # psi.ts (algorithm), api.ts (fetch wrapper), utils.ts (cn)
-│       ├── stores/      # Zustand: candidateStore, criteriaStore, psiStore
-│       └── types/       # TypeScript interfaces
-├── server/              # Express + sql.js (SQLite via WASM)
+│       ├── components/  # UI components, app pages, shared primitives
+│       ├── lib/         # algorithm, API client, PDF helpers, utilities
+│       ├── stores/      # Zustand state stores
+│       └── types/       # shared TS interfaces
+├── server/              # Express 5 + TypeScript + MySQL
 │   └── src/
-│       ├── db/          # database.ts, schema.ts, seed.ts
-│       ├── routes/      # candidates, criteria, psi, dashboard
-│       └── services/    # psiCalculator.ts (mirror of client/lib/psi.ts)
-└── prompt.md            # Original specification
+│       ├── db/          # database connection, schema, seed data
+│       ├── routes/      # REST API endpoints
+│       ├── services/    # business logic (PSI calculator, suggestion engine)
+│       └── middleware/  # auth
+├── docs/                 # local developer docs and setup guides
+└── prompt.md             # original assessment specification
 ```
 
-## Commands
+## Key files for AI agents
+
+- `package.json` — root workspace scripts
+- `client/package.json` — frontend dependencies and scripts
+- `server/package.json` — backend dependencies and scripts
+- `client/src/lib/psi.ts` — frontend PSI calculation logic
+- `server/src/services/psiCalculator.ts` — backend PSI calculation logic
+- `server/src/db/schema.ts` — database schema definitions
+- `server/src/db/seed.ts` — seed data and initial DB state
+- `server/src/routes/` — API contract and endpoints
+- `client/src/components/` — UI patterns and page implementations
+- `docs/Panduan Menjalankan Server dan Client.md` — setup and environment instructions
+
+## Build and run commands
+
+From the repo root:
 
 ```sh
-# Terminal 1 — Client
-cd client && pnpm dev    # Vite dev server (port 5173+, otomatis geser)
-
-# Terminal 2 — Server
-cd server && pnpm start  # tsc build + Express (port 3001)
-
-# Dari root (opsional):
-pnpm build               # Build client + server
-pnpm typecheck           # TypeScript check kedua package
+pnpm install
+pnpm dev          # starts client + server concurrently
+pnpm build        # builds both packages
+pnpm typecheck    # TypeScript validation for client and server
 ```
 
-Client → Vite, Server → Express. Vite proxies `/api/*` ke `http://localhost:3001`.
+## Important conventions
 
-## Key conventions
+- `client` and `server` are separate `pnpm` packages in the same workspace.
+- Use `pnpm dev` from the root for development; it runs both packages in parallel.
+- The backend uses MySQL 8.0 with credentials from `server/.env`.
+- The frontend communicates with the backend through `/api/*` proxied to `http://localhost:3001`.
+- `client/src/lib/psi.ts` and `server/src/services/psiCalculator.ts` must remain behaviorally identical whenever PSI logic changes.
+- Do not treat `weight_ref` as algorithm input. It is display-only, and PSI weight (`Φ_j`) is computed automatically from data variation.
+- Candidate scores are integer values `1–5`; the server validates this range.
+- PSI results are immutable once saved; recalculating creates a new session.
+- All criteria are Benefit-type in this domain.
+- Use `toLocaleString('id-ID')` for currency formatting.
 
-- **PSI algorithm** is duplicated in `client/src/lib/psi.ts` and `server/src/services/psiCalculator.ts` — they must stay identical.
-- **PSI does NOT use user-supplied weights** — weights (`Φ_j`) are computed automatically from data variation. The reference weights from the assessment document (30%, 25%, 20%, 15%, 10%) are stored in the DB as `weight_ref` for display only, never fed into PSI math.
-- **Edge case**: if all values for a criterion are identical (PV = 0), set DPV = 1 and divide equally.
-- **All criteria are Benefit type** — no Cost-type criteria exist in this domain. The normalization formula used is always `r_ij = x_ij / max(x_j)`. The Cost-type path in `psi.ts` remains for completeness.
-- **Scoring scale**: integer values **1–5** only. Validated on input server-side.
-- **Score labels**: map 1→"Sangat Kurang", 2→"Kurang", 3→"Cukup", 4→"Baik", 5→"Sangat Baik" shown in UI.
-- **Number formatting**: 4 decimal places for display, 6+ for internal calculation.
-- **Rupiah**: use `toLocaleString('id-ID')`.
-- **Heatmap**: highest value in column = green, lowest = red (gradient via `rgb()` interpolation).
-- **PSI results are immutable** once saved — create a new session to recalculate.
-- **Colors**: Primary `#1E3A5F`, Secondary `#2E86AB`, Accent `#F0A500`.
+## PSI-specific guidance
 
-## Database
+- Algorithm is based on Preference Selection Index (PSI).
+- Normalization is `r_ij = x_ij / max(x_j)` for all criteria.
+- If all values are identical for a criterion, set `DPV = 1` and divide weights equally.
+- The backend and frontend both compute PSI values and should remain consistent.
 
-SQLite via `sql.js` (WASM-based, no native compilation). File stored at `server/data/mentor-psi.db`. Schema auto-created on first run with seed data (5 criteria, 6 candidates, 30 scores). Criteria have `code`, `weight_ref`, and `status` columns in addition to the base schema.
+## Validation and quality checks
 
-## Tests
+- There is no dedicated automated test framework in this repo yet.
+- Use `pnpm typecheck` to validate TypeScript across client and server.
+- Use `pnpm build` to verify production build correctness.
 
-No test framework installed yet. Add tests when implementing new features.
+## Helpful local docs
 
-## Known quirks
+- [`README.md`](README.md)
+- [`docs/Panduan Menjalankan Server dan Client.md`](docs/Panduan Menjalankan Server dan Client.md)
+- [`docs/Seeder.md`](docs/Seeder.md)
+- [`docs/Reset-Database.md`](docs/Reset-Database.md)
 
-- `@tailwindcss` PostCSS plugin requires `tailwind.config.js` to map shadcn CSS variables to Tailwind color classes (`border`, `background`, `foreground`, etc.)
-- On Windows, `better-sqlite3` requires VS Build Tools — switched to `sql.js` instead
-- Bundle size warning from recharts (706KB) — acceptable for now, can code-split later
+## Known points of caution
+
+- The frontend is React 19 with Tailwind CSS and shadcn/ui. Changes to shared UI primitives should be reviewed for style and accessibility impact.
+- The backend uses JWT auth and expects `Authorization: Bearer <token>` on protected endpoints.
+- The server is currently configured for MySQL, not SQLite.
+- Because the PSI algorithm is duplicated, refactors often require correspondence between `client/src/lib/psi.ts` and `server/src/services/psiCalculator.ts`.
+
+## Recommended next customization
+
+Consider adding a dedicated agent instruction file or skill for PSI algorithm changes, React frontend UI work, or backend API route updates. This would help AI agents focus on the repo's highest-risk maintenance areas.

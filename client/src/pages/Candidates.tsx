@@ -173,8 +173,8 @@ export default function Candidates() {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => setDeleting(row.original)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
+                <Button variant="ghost" size="icon" className="group hover:bg-destructive hover:text-destructive-foreground dark:hover:bg-accent dark:hover:text-accent-foreground" onClick={() => setDeleting(row.original)}>
+                  <Trash2 className="h-4 w-4 text-destructive group-hover:text-destructive-foreground dark:group-hover:text-accent-foreground" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Hapus</TooltipContent>

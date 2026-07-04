@@ -3,6 +3,7 @@ import {
   Page,
   View,
   Text,
+  Image,
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
@@ -43,12 +44,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 4,
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  logo: {
+    width: 55,
+    height: 55,
+    marginRight: 12,
+  },
   subtitle: {
     fontSize: 9,
     fontFamily: "Noto Serif",
     color: colors.muted,
     textAlign: "center",
-    marginBottom: 10,
     lineHeight: 1.4,
   },
   sectionTitle: {
@@ -154,6 +164,7 @@ interface PSIPDFProps {
   exportedAt?: Date;
   username?: string;
   appName?: string;
+  logoSrc?: string;
 }
 
 function RankBadge({ rank }: { rank: number }) {
@@ -178,7 +189,7 @@ function RankBadge({ rank }: { rank: number }) {
   );
 }
 
-export default function PSIPDF({ result, exportedAt, username, appName }: PSIPDFProps) {
+export default function PSIPDF({ result, exportedAt, username, appName, logoSrc }: PSIPDFProps) {
   const r = result;
   const now = exportedAt ?? new Date();
   const criteriaLabels = r.calculationDetail?.meanValues?.map((_, i) => `C${i + 1}`) ?? [];
@@ -187,10 +198,15 @@ export default function PSIPDF({ result, exportedAt, username, appName }: PSIPDF
   return (
     <Document title={r.sessionName}>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.title}>{app}</Text>
-        <Text style={styles.subtitle}>
-          Laporan Hasil Perhitungan Sistem Pendukung Keputusan Untuk Rekrutmen Mentor Bidang Ai Engineer pada LKP academy Vistar Menggunakan Metode PSI — {r.sessionName}
-        </Text>
+        <View style={styles.headerRow}>
+          <Image style={styles.logo} src={logoSrc || "/images/logo/logo.png"} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>{app}</Text>
+            <Text style={styles.subtitle}>
+              Laporan Hasil Perhitungan Sistem Pendukung Keputusan Untuk Rekrutmen Mentor Bidang Ai Engineer pada LKP academy Vistar Menggunakan Metode PSI — {r.sessionName}
+            </Text>
+          </View>
+        </View>
 
         <Text style={styles.sectionTitle}>Ranking & PSI Score</Text>
         <View style={styles.table}>

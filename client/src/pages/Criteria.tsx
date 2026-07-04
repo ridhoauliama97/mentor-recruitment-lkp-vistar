@@ -72,8 +72,8 @@ function SubCriteriaContent({ criteriaId }: { criteriaId: number }) {
                   </span>
                   <span className="text-sm">{sc.name}</span>
                 </div>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeletingSub({ id: sc.id })}>
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                <Button variant="ghost" size="icon" className="group h-7 w-7 hover:bg-destructive hover:text-destructive-foreground dark:hover:bg-accent dark:hover:text-accent-foreground" onClick={() => setDeletingSub({ id: sc.id })}>
+                  <Trash2 className="h-3.5 w-3.5 text-destructive group-hover:text-destructive-foreground dark:group-hover:text-accent-foreground" />
                 </Button>
               </div>
             );
@@ -216,8 +216,8 @@ export default function CriteriaPage() {
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={() => setDeleting(row.original)}>
-                  <Trash2 className="h-4 w-4 text-destructive" />
+                <Button variant="ghost" size="icon" className="group hover:bg-destructive hover:text-destructive-foreground dark:hover:bg-accent dark:hover:text-accent-foreground" onClick={() => setDeleting(row.original)}>
+                  <Trash2 className="h-4 w-4 text-destructive group-hover:text-destructive-foreground dark:group-hover:text-accent-foreground" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Hapus</TooltipContent>
