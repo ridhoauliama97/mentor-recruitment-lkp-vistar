@@ -83,6 +83,8 @@ const TABLES = [
     \`value\` TEXT NOT NULL
   )`,
 
+  `ALTER TABLE app_settings MODIFY COLUMN \`value\` MEDIUMTEXT NOT NULL`,
+
   `CREATE TABLE IF NOT EXISTS psi_details (
     id INT AUTO_INCREMENT PRIMARY KEY,
     session_id INT NOT NULL,

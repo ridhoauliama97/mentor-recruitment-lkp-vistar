@@ -72,7 +72,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
               onClick={() => navigate("/")}
             >
-              <span className="text-base font-semibold">{appName}</span>
+              {settings.logo && (
+                <img src={settings.logo} alt="Logo" className="h-8 w-8 object-contain shrink-0" />
+              )}
+              <span className="text-sm font-semibold truncate">{appName}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

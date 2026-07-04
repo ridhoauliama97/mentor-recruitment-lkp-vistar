@@ -11,12 +11,20 @@ router.get("/", async (_req, res) => {
 });
 
 router.put("/", async (req, res) => {
-  const { app_name, institution, gemini_api_key } = req.body;
+  const { app_name, institution, logo, gemini_api_key } = req.body;
   if (app_name !== undefined) {
     await run("UPDATE app_settings SET `value` = ? WHERE `key` = 'app_name'", [app_name]);
   }
   if (institution !== undefined) {
     await run("UPDATE app_settings SET `value` = ? WHERE `key` = 'institution'", [institution]);
+  }
+  if (logo !== undefined) {
+    const existing = await exec("SELECT `value` FROM app_settings WHERE `key` = 'logo'");
+    if (existing.length > 0) {
+      await run("UPDATE app_settings SET `value` = ? WHERE `key` = 'logo'", [logo]);
+    } else {
+      await run("INSERT INTO app_settings (`key`, `value`) VALUES ('logo', ?)", [logo]);
+    }
   }
   if (gemini_api_key !== undefined) {
     const existing = await exec("SELECT `value` FROM app_settings WHERE `key` = 'gemini_api_key'");

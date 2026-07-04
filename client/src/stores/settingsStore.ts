@@ -30,6 +30,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       await api.put("/settings", {
         app_name: data.app_name,
         institution: data.institution,
+        logo: (data as AppSettings & { logo?: string }).logo,
         gemini_api_key: (data as AppSettings & { gemini_api_key?: string }).gemini_api_key,
       });
       set({ settings: data, saving: false });

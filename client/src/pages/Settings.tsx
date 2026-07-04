@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Save, AlertTriangle, Download, Upload, Loader2, KeyRound } from "@/components/ui/icons";
+import { Save, AlertTriangle, Download, Upload, Loader2, KeyRound, Trash2 } from "@/components/ui/icons";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,13 @@ export default function Settings() {
   const { settings, loading, saving, fetch, save } = useSettingsStore();
   const [appName, setAppName] = useState("");
   const [institution, setInstitution] = useState("");
+  const [logo, setLogo] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [pwForm, setPwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [pwSaving, setPwSaving] = useState(false);
   const [geminiKey, setGeminiKey] = useState("");
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch();
@@ -24,6 +27,7 @@ export default function Settings() {
   useEffect(() => {
     if (settings.app_name !== undefined) setAppName(settings.app_name);
     if (settings.institution !== undefined) setInstitution(settings.institution);
+    if (settings.logo !== undefined) setLogo(settings.logo);
   }, [settings]);
 
   useEffect(() => {
@@ -33,7 +37,22 @@ export default function Settings() {
   }, []);
 
   const handleSave = async () => {
-    await save({ app_name: appName, institution });
+    await save({ app_name: appName, institution, logo });
+  };
+
+  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setLogo(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveLogo = () => {
+    setLogo("");
+    setLogoFile(null);
+    if (logoInputRef.current) logoInputRef.current.value = "";
   };
 
   const handleReset = () => {
@@ -95,6 +114,32 @@ export default function Settings() {
               value={appName}
               onChange={(e) => setAppName(e.target.value)}
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Logo Aplikasi</label>
+            <div className="flex items-center gap-3">
+              {logo ? (
+                <div className="relative group">
+                  <img src={logo} alt="Logo" className="h-10 w-10 object-contain rounded border" />
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="h-10 w-10 rounded border border-dashed border-muted-foreground/40 flex items-center justify-center">
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                </div>
+              )}
+              <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoSelect} />
+              <Button type="button" variant="outline" size="sm" onClick={() => logoInputRef.current?.click()}>
+                {logo ? "Ganti Logo" : "Pilih Logo"}
+              </Button>
+              {logoFile && <span className="text-xs text-muted-foreground truncate max-w-[160px]">{logoFile.name}</span>}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Nama Instansi</label>

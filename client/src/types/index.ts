@@ -84,6 +84,7 @@ export interface PSIResult {
 export interface AppSettings {
   app_name?: string;
   institution?: string;
+  logo?: string;
 }
 
 export interface ExportData {
