@@ -1,102 +1,70 @@
-# AGENTS.md — SPK Rekrutmen Mentor AI Engineer (PSI)
+# AGENTS.md — SPK Rekrutmen Mentor (PSI)
 
-## Purpose for AI coding agents
+## Purpose
 
-This file is the repo-specific guide for AI coding agents working on `mentor-recruitment`. Use it to understand the architecture, key decisions, and high-risk areas before editing code.
-
-- Focus on the `client/` React frontend and `server/` Express backend as two separate packages in a `pnpm` workspace.
-- Preserve the PSI algorithm parity between frontend and backend.
-- Prefer links to documentation instead of duplicating detailed setup steps.
-- Use `pnpm typecheck` as the primary validation check; there is no dedicated test framework installed yet.
-
-## What this repo is
-
-A full-stack assessment app for mentor recruitment using the Preference Selection Index (PSI) decision-making method.
+Repo-specific guide for AI coding agents. Every line here cost multiple reads to verify — don't skip it.
 
 ## Architecture
 
+Two packages in a `pnpm` workspace:
+
 ```
 mentor-recruitment/
-├── client/              # Vite + React 19 + TypeScript
+├── client/              # Vite 8 + React 19 + TypeScript (~6.0)
 │   └── src/
-│       ├── components/  # UI components, app pages, shared primitives
-│       ├── lib/         # algorithm, API client, PDF helpers, utilities
-│       ├── stores/      # Zustand state stores
+│       ├── components/  # pages/, ui/ (shadcn), layout/
+│       ├── lib/         # psi.ts, api.ts, pdf.tsx, utils.ts
+│       ├── stores/      # Zustand stores
 │       └── types/       # shared TS interfaces
-├── server/              # Express 5 + TypeScript + MySQL
+├── server/              # Express 5 + TypeScript (~5.8), ESM
 │   └── src/
-│       ├── db/          # database connection, schema, seed data
-│       ├── routes/      # REST API endpoints
-│       ├── services/    # business logic (PSI calculator, suggestion engine)
-│       └── middleware/  # auth
-├── docs/                 # local developer docs and setup guides
-└── prompt.md             # original assessment specification
+│       ├── db/          # database.ts (mysql2 pool), schema.ts, seed.ts
+│       ├── routes/      # auth, candidates, criteria, scores, psi, chat, ...
+│       ├── services/    # psiCalculator.ts (mirrors client), suggestionEngine
+│       └── middleware/  # auth (JWT, 7d expiry)
+├── docs/                # setup, seeder, reset-database guides
+└── prompt.md            # original spec (outdated — trust code, not prompt)
 ```
 
-## Key files for AI agents
+## Commands (all from root)
 
-- `package.json` — root workspace scripts
-- `client/package.json` — frontend dependencies and scripts
-- `server/package.json` — backend dependencies and scripts
-- `client/src/lib/psi.ts` — frontend PSI calculation logic
-- `server/src/services/psiCalculator.ts` — backend PSI calculation logic
-- `server/src/db/schema.ts` — database schema definitions
-- `server/src/db/seed.ts` — seed data and initial DB state
-- `server/src/routes/` — API contract and endpoints
-- `client/src/components/` — UI patterns and page implementations
-- `docs/Panduan Menjalankan Server dan Client.md` — setup and environment instructions
+| Command | What it does |
+|---------|-------------|
+| `pnpm install` | Install all deps |
+| `pnpm dev` | Client (Vite :5173) + server (tsx watch :3001) concurrently |
+| `pnpm build` | `tsc && vite build` (client) + `tsc` (server → `dist/`) |
+| `pnpm start` | `pnpm build` then `node dist/index.js` (server-only) |
+| `pnpm typecheck` | `tsc --noEmit` on both packages |
+| `pnpm lint` | Same as typecheck — **no ESLint/Prettier configured** |
 
-## Build and run commands
+**Prerequisite:** copy `server/.env.example` → `server/.env` before running.
 
-From the repo root:
+## Key conventions
 
-```sh
-pnpm install
-pnpm dev          # starts client + server concurrently
-pnpm build        # builds both packages
-pnpm typecheck    # TypeScript validation for client and server
-```
+- **No test framework, no CI/CD** (`pnpm typecheck` is the only gate).
+- **Server is ESM:** imports must use `.js` extension (e.g. `from "./db/database.js"`).
+- **Server dev** uses `tsx watch` (not `ts-node`). Auto-restarts on file change.
+- **Schema + seed auto-run** on every server start (`runSchema()` → `seed()` → `seedSettings()`). No migration tooling.
+- **Database:** MySQL 8.0 via `mysql2/promise` pool. The `exec()` function auto-converts `snake_case` columns → `camelCase` in results.
+- **Vite proxy** forwards `/api/*` **and** `/uploads/*` → `http://localhost:3001`.
+- **Client `@/` alias** maps to `./src/` (both tsconfig and vite config).
+- **JWT:** all routes under `/api` except `/api/auth/login` require `Authorization: Bearer <token>`. Token expires in 7 days.
+- **Scores** validated as integer `1–5` server-side.
+- **`weight_ref`** in `criteria` table is display-only. PSI weight (`Φ_j`) is computed from data variation.
+- **PSI results are immutable** once saved; recalculate by creating a new session.
+- **Currency formatting:** `toLocaleString('id-ID')`.
 
-## Important conventions
+## PSI algorithm
 
-- `client` and `server` are separate `pnpm` packages in the same workspace.
-- Use `pnpm dev` from the root for development; it runs both packages in parallel.
-- The backend uses MySQL 8.0 with credentials from `server/.env`.
-- The frontend communicates with the backend through `/api/*` proxied to `http://localhost:3001`.
-- `client/src/lib/psi.ts` and `server/src/services/psiCalculator.ts` must remain behaviorally identical whenever PSI logic changes.
-- Do not treat `weight_ref` as algorithm input. It is display-only, and PSI weight (`Φ_j`) is computed automatically from data variation.
-- Candidate scores are integer values `1–5`; the server validates this range.
-- PSI results are immutable once saved; recalculating creates a new session.
-- All criteria are Benefit-type in this domain.
-- Use `toLocaleString('id-ID')` for currency formatting.
+- Benefit normalization: `r_ij = x_ij / max(x_j)`
+- Cost normalization: `r_ij = min(x_j) / x_ij`
+- Edge case (all same): DPV = 1 → weights divided equally.
+- **Duplicated identically** in `client/src/lib/psi.ts` and `server/src/services/psiCalculator.ts` — keep in sync.
+- **`extractDetail()`** in `server/src/routes/psi.ts` re-implements PSI from stored DB values (same logic, different code shape).
 
-## PSI-specific guidance
+## Watch points
 
-- Algorithm is based on Preference Selection Index (PSI).
-- Normalization is `r_ij = x_ij / max(x_j)` for all criteria.
-- If all values are identical for a criterion, set `DPV = 1` and divide weights equally.
-- The backend and frontend both compute PSI values and should remain consistent.
-
-## Validation and quality checks
-
-- There is no dedicated automated test framework in this repo yet.
-- Use `pnpm typecheck` to validate TypeScript across client and server.
-- Use `pnpm build` to verify production build correctness.
-
-## Helpful local docs
-
-- [`README.md`](README.md)
-- [`docs/Panduan Menjalankan Server dan Client.md`](docs/Panduan Menjalankan Server dan Client.md)
-- [`docs/Seeder.md`](docs/Seeder.md)
-- [`docs/Reset-Database.md`](docs/Reset-Database.md)
-
-## Known points of caution
-
-- The frontend is React 19 with Tailwind CSS and shadcn/ui. Changes to shared UI primitives should be reviewed for style and accessibility impact.
-- The backend uses JWT auth and expects `Authorization: Bearer <token>` on protected endpoints.
-- The server is currently configured for MySQL, not SQLite.
-- Because the PSI algorithm is duplicated, refactors often require correspondence between `client/src/lib/psi.ts` and `server/src/services/psiCalculator.ts`.
-
-## Recommended next customization
-
-Consider adding a dedicated agent instruction file or skill for PSI algorithm changes, React frontend UI work, or backend API route updates. This would help AI agents focus on the repo's highest-risk maintenance areas.
+- Client TS is `~6.0`, server is `~5.8` — version mismatch is intentional, don't unify.
+- PSI changes require **two files**: `client/src/lib/psi.ts` and `server/src/services/psiCalculator.ts`.
+- No ORM, no migration framework — schema changes go in `server/src/db/schema.ts`.
+- The `sub_criteria` table exists; they carry `weight` (1–5) linked to a `criteria`.

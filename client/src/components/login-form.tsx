@@ -10,13 +10,14 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { AlertCircle, BrandReactIcon } from "@/components/ui/icons";
+import { AlertCircle } from "@/components/ui/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
 interface LoginFormProps {
   appName: string;
   institution: string;
+  logoUrl?: string;
   onLogin: (username: string, password: string) => Promise<void>;
 }
 
@@ -24,6 +25,7 @@ export function LoginForm({
   className,
   appName,
   institution,
+  logoUrl,
   onLogin,
   ...props
 }: React.ComponentPropsWithoutRef<"div"> & LoginFormProps) {
@@ -54,11 +56,11 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <div className="mb-2 flex justify-center">
-            <div className="flex size-12 items-center justify-center rounded-full bg-primary">
-              <BrandReactIcon className="size-6 text-primary-foreground" />
+          {logoUrl && (
+            <div className="mb-2 flex justify-center">
+              <img src={logoUrl} alt="Logo" className="size-12 object-contain" />
             </div>
-          </div>
+          )}
           <CardTitle className="text-xl">{appName}</CardTitle>
           <CardDescription>{institution}</CardDescription>
         </CardHeader>

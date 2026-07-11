@@ -15,6 +15,7 @@ export default function Login() {
 
   const appName = settings.app_name ?? "LKP Academy Vistar";
   const institution = settings.institution ?? "SPK Rekrutmen Mentor AI Engineer";
+  const logoUrl = settings.logo;
 
   const handleLogin = async (username: string, password: string) => {
     await login(username, password);
@@ -24,7 +25,7 @@ export default function Login() {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <LoginForm appName={appName} institution={institution} onLogin={handleLogin} />
+        <LoginForm appName={appName} institution={institution} logoUrl={logoUrl} onLogin={handleLogin} />
       </div>
     </div>
   );
